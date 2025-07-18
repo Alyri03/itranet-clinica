@@ -138,6 +138,19 @@ export default function CrearCita({ onSuccess }) {
           <div>
             <p className="font-medium mb-2">1. Selecciona un médico</p>
             <MedicosGrid modoDirecto value={medicoId} onChange={setMedicoId} />
+            {especialidadesMedico.length > 0 && (
+              <div className="bg-slate-50 border rounded-md p-3 text-sm text-gray-700">
+                <p>
+                  <strong>Especialidad:</strong>{" "}
+                  {especialidadesMedico[0]?.nombreEspecialidad ||
+                    "No especificada"}
+                </p>
+                <p>
+                  <strong>Servicio:</strong>{" "}
+                  {servicioEncontrado?.nombre || "No asignado"}
+                </p>
+              </div>
+            )}
           </div>
 
           {medicoId && (
