@@ -5,11 +5,11 @@ export const MODULOS_ROLES = {
     "perfil",
   ],
   medico: [
-    "main",
-    "agenda",
-    "atencion",
-    "pacientes",
-    "perfil",
+  "main",
+  "pacientes",
+  "agenda",
+  "atencion",
+  "perfil",
   ],
   recepcionista: [
     "citas",

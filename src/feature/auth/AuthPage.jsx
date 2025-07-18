@@ -10,13 +10,26 @@ export default function AuthPage() {
 
   const { mutate, isLoading } = useLogin({
     onSuccess: (data) => {
-      console.log("DATA DESDE BACKEND:", data);
-      loginStore(data, "");
+      console.log("[LOGIN SUCCESS] data recibida del backend:", data);
+
+      // Adaptar la respuesta del backend al formato esperado
+      if (!data || !data.role || !data.usuarioId) {
+        toast.error("Respuesta de login inválida. Consulta al administrador.");
+        return;
+      }
+
+      // Adaptamos a { usuarioId, rol: { nombre } }
+      const adaptedData = {
+        ...data,
+        rol: { nombre: data.role },
+      };
+
+      loginStore(adaptedData, "");
+      toast.dismiss();
       toast.success("¡Bienvenido!");
-      switch (data.role) {
+
+      switch (adaptedData.rol.nombre) {
         case "PACIENTE":
-          navigate("/main");
-          break;
         case "MEDICO":
           navigate("/main");
           break;
@@ -31,6 +44,8 @@ export default function AuthPage() {
       }
     },
     onError: (error) => {
+      console.log("[LOGIN ERROR]", error);
+      toast.dismiss();
       toast.error(
         error?.response?.data?.message ||
           "Credenciales incorrectas. Intenta de nuevo."
@@ -39,6 +54,7 @@ export default function AuthPage() {
   });
 
   const handleLogin = ({ email, password }) => {
+    console.log("[HANDLE LOGIN] email:", email, "password:", password);
     mutate({ correo: email, password });
   };
 

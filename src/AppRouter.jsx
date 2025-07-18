@@ -9,10 +9,13 @@ import MedicosPage from "./feature/medicos/MedicosPage";
 import PacientesPage from "./feature/pacientes/PacientesPage";
 import PerfilPage from "./feature/perfil/PerfilPage";
 import RecepcionistasPage from "./feature/recepcionistas/RecepcionistasPage";
+import AgendaPage from "./feature/agenda/AgendaPage";
+import AtencionPage from "./feature/atencion/AtencionPage";
 
 export default function AppRouter() {
   const user = useAuthStore((s) => s.user);
   console.log("Usuario actual:", user);
+
   if (!user) {
     return (
       <BrowserRouter>
@@ -34,6 +37,8 @@ export default function AppRouter() {
           <Route path="pacientes" element={<PacientesPage />} />
           <Route path="perfil" element={<PerfilPage />} />
           <Route path="recepcionistas" element={<RecepcionistasPage />} />
+          <Route path="agenda" element={<AgendaPage />} />
+          <Route path="atencion" element={<AtencionPage />} />
           <Route path="*" element={<Navigate to="/main" />} />
         </Route>
       </Routes>

@@ -11,10 +11,15 @@ export default function Layout() {
 
   // Mapea rutas a títulos de módulo
   const routeTitles = {
-    "/citas": "Dashboard",
-    "/pacientes": "Inventario",
-    "/medicos": "Pedidos en Tienda",
-    "/perfil": "Caja",
+    "/dashboard": "Dashboard",
+    "/main": "Inicio",
+    "/citas": "Citas",
+    "/medicos": "Médicos",
+    "/pacientes": "Pacientes",
+    "/perfil": "Perfil",
+    "/recepcionistas": "Recepcionistas",
+    "/agenda": "Agenda",
+    "/atencion": "Atención",
   };
 
   const currentPath = location.pathname;
