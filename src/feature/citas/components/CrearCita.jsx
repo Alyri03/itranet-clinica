@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import ServiciosGrid from "../../components/ServiciosGrid";
-import MedicosGrid from "../../components/MedicosGrid";
-import SelectBloquesMedico from "../../components/SelectBloquesMedico";
-import NotasCita from "../../components/NotasCita";
+import ServiciosGrid from "./ServiciosGrid";
+import MedicosGrid from "./MedicosGrid";
+import SelectBloquesMedico from "./SelectBloquesMedico";
+import NotasCita from "./NotasCita";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useCrearCita } from "../../hooks/useCrearCita";
-import { useServicios } from "../../../medicos/hooks/useServicios";
-import { useBloquesByMedico } from "../../../medicos/hooks/useBloquesByMedico";
-import { useMedico } from "../../../medicos/hooks/useMedico";
-import { useEspecialidadByMedico } from "../../../medicos/hooks/useEspecialidadByMedico";
+import { Input } from "@/components/ui/input";
+import { useCrearCita } from "../hooks/useCrearCita";
+import { useServicios } from "../../medicos/hooks/useServicios";
+import { useBloquesByMedico } from "../../medicos/hooks/useBloquesByMedico";
+import { useMedico } from "../../medicos/hooks/useMedico";
+import { useEspecialidadByMedico } from "../../medicos/hooks/useEspecialidadByMedico";
+import { useBuscarPacientePorDocumento } from "../../pacientes/hooks/useBuscarPacientePorDocumento";
 
 export default function CrearCita({ onSuccess }) {
-  const pacienteId = useAuthStore((s) => s.pacienteId);
+  const user = useAuthStore((s) => s.user);
+  const rol = user?.rol;
+  const pacienteIdFromAuth = useAuthStore((s) => s.pacienteId);
   const { data: servicios = [] } = useServicios();
   const { data: medicos = [] } = useMedico();
 
@@ -23,11 +27,10 @@ export default function CrearCita({ onSuccess }) {
   const [medicoId, setMedicoId] = useState("");
   const [bloqueId, setBloqueId] = useState("");
   const [nota, setNota] = useState("");
+  const [dni, setDni] = useState("");
 
   const { data: bloques = [] } = useBloquesByMedico(medicoId);
-  const bloqueSeleccionado = bloques.find(
-    (b) => String(b.id) === String(bloqueId)
-  );
+  const bloqueSeleccionado = bloques.find((b) => String(b.id) === String(bloqueId));
 
   const { data: especialidadesMedico = [] } = useEspecialidadByMedico(
     medicoId,
@@ -35,9 +38,7 @@ export default function CrearCita({ onSuccess }) {
   );
 
   const especialidadDelMedico = especialidadesMedico[0]?.especialidadId;
-  const servicioEncontrado = servicios.find(
-    (s) => s.especialidadId === especialidadDelMedico
-  );
+  const servicioEncontrado = servicios.find((s) => s.especialidadId === especialidadDelMedico);
   const servicioIdDesdeMedico = servicioEncontrado?.id ?? null;
 
   const { mutate: registrarCita, isLoading } = useCrearCita(() => {
@@ -46,8 +47,17 @@ export default function CrearCita({ onSuccess }) {
     setMedicoId("");
     setBloqueId("");
     setNota("");
+    setDni("");
     onSuccess?.();
   });
+
+  const {
+    data: pacienteBuscado,
+    refetch: buscarPaciente,
+    isFetching: buscandoPaciente,
+  } = useBuscarPacientePorDocumento(dni, { enabled: false });
+
+  const pacienteId = rol === "PACIENTE" ? pacienteIdFromAuth : pacienteBuscado?.id;
 
   const handleServicioSeleccionado = (id, especialidad) => {
     setServicioId(id);
@@ -61,8 +71,7 @@ export default function CrearCita({ onSuccess }) {
 
     const body = {
       pacienteId: Number(pacienteId),
-      servicioId:
-        modo === "servicio" ? Number(servicioId) : servicioIdDesdeMedico,
+      servicioId: modo === "servicio" ? Number(servicioId) : servicioIdDesdeMedico,
       medicoId: Number(medicoId),
       fecha: bloqueSeleccionado.fecha,
       hora: bloqueSeleccionado.horaInicio,
@@ -80,6 +89,28 @@ export default function CrearCita({ onSuccess }) {
     <div className="p-6 space-y-6">
       <h2 className="text-xl font-semibold text-center">Reservar nueva cita</h2>
 
+      {rol === "RECEPCIONISTA" && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Buscar paciente por DNI</label>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Número de DNI"
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+            />
+            <Button onClick={() => buscarPaciente()} disabled={!dni}>
+              Buscar
+            </Button>
+          </div>
+          {buscandoPaciente && <p className="text-sm text-muted-foreground">Buscando paciente...</p>}
+          {pacienteBuscado && (
+            <p className="text-sm text-green-600">
+              Paciente: {pacienteBuscado.nombres} {pacienteBuscado.apellidos}
+            </p>
+          )}
+        </div>
+      )}
+
       <Tabs value={modo} onValueChange={setModo} className="space-y-6 w-full">
         <div className="flex justify-center">
           <TabsList>
@@ -88,16 +119,14 @@ export default function CrearCita({ onSuccess }) {
           </TabsList>
         </div>
 
-        {/* Modo: Por Servicio */}
+        {/* Por Servicio */}
         <TabsContent value="servicio" className="space-y-6">
           <div>
             <p className="font-medium mb-2">1. Selecciona un servicio</p>
             <ServiciosGrid
               value={servicioId}
               onChange={(id) => {
-                const servicio = servicios.find(
-                  (s) => String(s.id) === String(id)
-                );
+                const servicio = servicios.find((s) => String(s.id) === String(id));
                 handleServicioSeleccionado(id, servicio?.especialidadId);
               }}
             />
@@ -106,22 +135,14 @@ export default function CrearCita({ onSuccess }) {
           {especialidadId && (
             <div>
               <p className="font-medium mb-2">2. Selecciona un médico</p>
-              <MedicosGrid
-                especialidadId={especialidadId}
-                value={medicoId}
-                onChange={setMedicoId}
-              />
+              <MedicosGrid especialidadId={especialidadId} value={medicoId} onChange={setMedicoId} />
             </div>
           )}
 
           {medicoId && (
             <div>
               <p className="font-medium mb-2">3. Selecciona un horario</p>
-              <SelectBloquesMedico
-                medicoId={medicoId}
-                value={bloqueId}
-                onChange={setBloqueId}
-              />
+              <SelectBloquesMedico medicoId={medicoId} value={bloqueId} onChange={setBloqueId} />
             </div>
           )}
 
@@ -133,7 +154,7 @@ export default function CrearCita({ onSuccess }) {
           )}
         </TabsContent>
 
-        {/* Modo: Por Médico */}
+        {/* Por Médico */}
         <TabsContent value="medico" className="space-y-6">
           <div>
             <p className="font-medium mb-2">1. Selecciona un médico</p>
@@ -141,13 +162,10 @@ export default function CrearCita({ onSuccess }) {
             {especialidadesMedico.length > 0 && (
               <div className="bg-slate-50 border rounded-md p-3 text-sm text-gray-700">
                 <p>
-                  <strong>Especialidad:</strong>{" "}
-                  {especialidadesMedico[0]?.nombreEspecialidad ||
-                    "No especificada"}
+                  <strong>Especialidad:</strong> {especialidadesMedico[0]?.nombreEspecialidad || "No especificada"}
                 </p>
                 <p>
-                  <strong>Servicio:</strong>{" "}
-                  {servicioEncontrado?.nombre || "No asignado"}
+                  <strong>Servicio:</strong> {servicioEncontrado?.nombre || "No asignado"}
                 </p>
               </div>
             )}
@@ -156,11 +174,7 @@ export default function CrearCita({ onSuccess }) {
           {medicoId && (
             <div>
               <p className="font-medium mb-2">2. Selecciona un horario</p>
-              <SelectBloquesMedico
-                medicoId={medicoId}
-                value={bloqueId}
-                onChange={setBloqueId}
-              />
+              <SelectBloquesMedico medicoId={medicoId} value={bloqueId} onChange={setBloqueId} />
             </div>
           )}
 
@@ -175,10 +189,7 @@ export default function CrearCita({ onSuccess }) {
 
       {bloqueId && (
         <div className="flex justify-end pt-4">
-          <Button
-            onClick={handleRegistrar}
-            disabled={isLoading || !pacienteId || !medicoId || !bloqueId}
-          >
+          <Button onClick={handleRegistrar} disabled={isLoading || !pacienteId || !medicoId || !bloqueId}>
             {isLoading ? "Registrando..." : "Confirmar cita"}
           </Button>
         </div>

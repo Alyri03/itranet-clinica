@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 function EstadoBadge({ estado }) {
-  const variant = `estado-${estado.toLowerCase().replace("_", "-")}`; // ejemplo: "estado-no-presentado"
+  const variant = `estado-${estado.toLowerCase().replace("_", "-")}`;
   return <Badge variant={variant}>{estado}</Badge>;
 }
 
