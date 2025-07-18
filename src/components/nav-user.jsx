@@ -69,8 +69,8 @@ export function NavUser() {
   const initials =
     (profile.nombres?.[0] ?? "").toUpperCase() +
     (profile.apellidos?.[0] ?? "").toUpperCase();
-  const email =
-    profile.email || profile.usuario?.correo || profile.correo || "Sin correo";
+  const email = profile?.usuario?.correo ?? profile?.correo ?? "Sin correo";
+
   const avatarUrl = profile.imagenUrl || null;
 
   return (

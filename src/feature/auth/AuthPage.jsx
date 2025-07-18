@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import {
   getProfilePacienteByUsuarioId,
   getProfileMedicoByUsuarioId,
+  getProfileRecepcionistaByUsuarioId,
+  getProfileAdministradorByUsuarioId,
 } from "../perfil/api/perfilApi";
 
 export default function AuthPage() {
@@ -22,24 +24,58 @@ export default function AuthPage() {
         return;
       }
 
+      // ⚠️ Normaliza rol para el frontend
+      const adaptedRole =
+        {
+          ADMIN: "ADMINISTRADOR",
+          PACIENTE: "PACIENTE",
+          MEDICO: "MEDICO",
+          RECEPCIONISTA: "RECEPCIONISTA",
+        }[data.role] || data.role;
+
       const adaptedUser = {
         usuarioId: data.usuarioId,
-        rol: data.role,
+        rol: adaptedRole,
       };
 
+      // IDs de perfiles según rol
       let pacienteId = null;
       let medicoId = null;
+      let recepcionistaId = null;
+      let adminId = null;
       let profile = null;
 
       try {
-        if (adaptedUser.rol === "PACIENTE") {
-          profile = await getProfilePacienteByUsuarioId(adaptedUser.usuarioId);
-          pacienteId = profile?.id ?? null;
-          console.log("✅ Perfil PACIENTE:", profile);
-        } else if (adaptedUser.rol === "MEDICO") {
-          profile = await getProfileMedicoByUsuarioId(adaptedUser.usuarioId);
-          medicoId = profile?.id ?? null;
-          console.log("✅ Perfil MÉDICO:", profile);
+        switch (adaptedUser.rol) {
+          case "PACIENTE":
+            profile = await getProfilePacienteByUsuarioId(
+              adaptedUser.usuarioId
+            );
+            pacienteId = profile?.id ?? null;
+            console.log("✅ Perfil PACIENTE:", profile);
+            break;
+
+          case "MEDICO":
+            profile = await getProfileMedicoByUsuarioId(adaptedUser.usuarioId);
+            medicoId = profile?.id ?? null;
+            console.log("✅ Perfil MÉDICO:", profile);
+            break;
+
+          case "RECEPCIONISTA":
+            profile = await getProfileRecepcionistaByUsuarioId(
+              adaptedUser.usuarioId
+            );
+            recepcionistaId = profile?.id ?? null;
+            console.log("✅ Perfil RECEPCIONISTA:", profile);
+            break;
+
+          case "ADMINISTRADOR":
+            profile = await getProfileAdministradorByUsuarioId(
+              adaptedUser.usuarioId
+            );
+            adminId = profile?.id ?? null;
+            console.log("✅ Perfil ADMINISTRADOR:", profile);
+            break;
         }
       } catch (error) {
         console.error("❌ Error al obtener perfil:", error);
@@ -49,9 +85,14 @@ export default function AuthPage() {
       loginStore(adaptedUser, {
         pacienteId,
         medicoId,
+        recepcionistaId,
+        adminId,
       });
 
-      console.log("📦 Estado de store después de login:", useAuthStore.getState());
+      console.log(
+        "📦 Estado de store después de login:",
+        useAuthStore.getState()
+      );
 
       toast.dismiss();
       toast.success("¡Bienvenido!");
