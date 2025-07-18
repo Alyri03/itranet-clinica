@@ -1,10 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.jsx";
-
+import AppRouter from "./AppRouter";
+import QueryProvider from "./providers/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <QueryProvider>
+      <AppRouter />
+      <Toaster richColors />
+    </QueryProvider>
   </StrictMode>
 );

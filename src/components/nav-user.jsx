@@ -24,9 +24,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useLogout } from "@/feature/auth/hooks/useLogout";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export function NavUser() {
-  // Datos de usuario fijo para mostrar en la UI
+  // Aquí deberías obtener el user real del store
+  // const user = useAuthStore((s) => s.user);
+  // Para pruebas puedes dejarlo estático, pero usa el store en producción
   const user = {
     name: "Luis Martínez",
     email: "luis@prueba.com",
@@ -39,10 +45,24 @@ export function NavUser() {
   const [open, setOpen] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
 
-  // Simulación del logout (solo cierra el modal)
+  const logoutStore = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+  const { mutate: logout, isLoading } = useLogout({
+    onSuccess: () => {
+      logoutStore();
+      toast.success("Sesión cerrada correctamente");
+      navigate("/");
+    },
+    onError: (error) => {
+      logoutStore();
+      toast.error("Error al cerrar sesión. Intenta de nuevo.");
+      navigate("/");
+    },
+  });
+
   const handleConfirmLogout = () => {
     setOpen(false);
-    alert("Sesión cerrada (fake)");
+    logout();
   };
 
   return (
@@ -122,8 +142,12 @@ export function NavUser() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={handleConfirmLogout}>
-              Cerrar sesión
+            <Button
+              variant="destructive"
+              onClick={handleConfirmLogout}
+              disabled={isLoading}
+            >
+              {isLoading ? "Cerrando..." : "Cerrar sesión"}
             </Button>
           </DialogFooter>
         </DialogContent>
