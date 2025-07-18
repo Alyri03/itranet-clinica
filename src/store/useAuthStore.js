@@ -5,11 +5,20 @@ export const useAuthStore = create(
   persist(
     (set) => ({
       user: null,
-      token: null,
-      profile: null,
-      login: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null, profile: null }),
-      setProfile: (profile) => set({ profile }),
+      pacienteId: null,
+      medicoId: null,
+      login: (user, extra = {}) =>
+        set({
+          user,
+          pacienteId: extra.pacienteId ?? null,
+          medicoId: extra.medicoId ?? null,
+        }),
+      logout: () =>
+        set({
+          user: null,
+          pacienteId: null,
+          medicoId: null,
+        }),
     }),
     {
       name: "auth-storage",

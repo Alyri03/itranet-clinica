@@ -42,7 +42,7 @@ const ALL_PROJECTS = [
 export function NavProjects() {
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
-  const role = (user?.role || "").toLowerCase();
+  const role = (user?.rol || "").toLowerCase(); 
 
   const allowed = MODULOS_ROLES[role] || [];
 

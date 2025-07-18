@@ -3,32 +3,61 @@ import { useLogin } from "./hooks/useLogin";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import {
+  getProfilePacienteByUsuarioId,
+  getProfileMedicoByUsuarioId,
+} from "../perfil/api/perfilApi";
 
 export default function AuthPage() {
   const loginStore = useAuthStore((s) => s.login);
   const navigate = useNavigate();
 
   const { mutate, isLoading } = useLogin({
-    onSuccess: (data) => {
-      console.log("[LOGIN SUCCESS] data recibida del backend:", data);
+    onSuccess: async (data) => {
+      console.log("[LOGIN SUCCESS] data recibida:", data);
 
-      // Adaptar la respuesta del backend al formato esperado
-      if (!data || !data.role || !data.usuarioId) {
+      if (!data?.usuarioId || !data?.role) {
+        console.warn("[LOGIN WARNING] Datos incompletos:", data);
         toast.error("Respuesta de login inválida. Consulta al administrador.");
         return;
       }
 
-      // Adaptamos a { usuarioId, rol: { nombre } }
-      const adaptedData = {
-        ...data,
-        rol: { nombre: data.role },
+      const adaptedUser = {
+        usuarioId: data.usuarioId,
+        rol: data.role,
       };
 
-      loginStore(adaptedData, "");
+      let pacienteId = null;
+      let medicoId = null;
+      let profile = null;
+
+      try {
+        if (adaptedUser.rol === "PACIENTE") {
+          profile = await getProfilePacienteByUsuarioId(adaptedUser.usuarioId);
+          pacienteId = profile?.id ?? null;
+          console.log("✅ Perfil PACIENTE:", profile);
+        } else if (adaptedUser.rol === "MEDICO") {
+          profile = await getProfileMedicoByUsuarioId(adaptedUser.usuarioId);
+          medicoId = profile?.id ?? null;
+          console.log("✅ Perfil MÉDICO:", profile);
+        }
+      } catch (error) {
+        console.error("❌ Error al obtener perfil:", error);
+        toast.error("Error al obtener perfil: " + error.message);
+      }
+
+      loginStore(adaptedUser, {
+        pacienteId,
+        medicoId,
+      });
+
+      console.log("📦 Estado de store después de login:", useAuthStore.getState());
+
       toast.dismiss();
       toast.success("¡Bienvenido!");
 
-      switch (adaptedData.rol.nombre) {
+      // Redirige según rol
+      switch (adaptedUser.rol) {
         case "PACIENTE":
         case "MEDICO":
           navigate("/main");
@@ -40,12 +69,13 @@ export default function AuthPage() {
           navigate("/dashboard");
           break;
         default:
+          console.warn("Rol desconocido, redirigiendo a /main");
           navigate("/main");
       }
     },
     onError: (error) => {
-      console.log("[LOGIN ERROR]", error);
       toast.dismiss();
+      console.error("[LOGIN ERROR]", error);
       toast.error(
         error?.response?.data?.message ||
           "Credenciales incorrectas. Intenta de nuevo."
@@ -54,7 +84,7 @@ export default function AuthPage() {
   });
 
   const handleLogin = ({ email, password }) => {
-    console.log("[HANDLE LOGIN] email:", email, "password:", password);
+    console.log("🔐 Enviando login con:", email);
     mutate({ correo: email, password });
   };
 
