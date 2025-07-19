@@ -23,12 +23,14 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
   const [error, setError] = useState("");
 
   const { mutate, isLoading } = useActualizarPaciente({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Éxito al actualizar:", data);
       toast.success("Paciente actualizado correctamente");
       onClose();
       setError("");
     },
     onError: (err) => {
+      console.error("❌ Error al actualizar:", err);
       const msg = err?.message || "Error al actualizar paciente";
       toast.error(msg);
       setError(msg);
@@ -46,22 +48,32 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
   }, [paciente, open]);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
-    if (!paciente) return;
 
-    mutate({
+    if (!paciente) {
+      console.warn("⚠️ No hay paciente seleccionado");
+      return;
+    }
+
+    const payload = {
       id: paciente.id,
-      patientData: {
+      datosPaciente: {
         telefono: form.telefono.trim(),
         direccion: form.direccion.trim(),
         imagenUrl: form.imagenUrl.trim(),
       },
-    });
+    };
+
+    console.log("📦 Payload a enviar:", payload);
+    mutate(payload);
   };
 
   return (

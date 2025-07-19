@@ -5,7 +5,8 @@ export function useActualizarPaciente({ onSuccess, onError }) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, datos }) => actualizarDatosPaciente(id, datos),
+    mutationFn: ({ id, datosPaciente }) =>
+      actualizarDatosPaciente(id, datosPaciente),
     onSuccess: (data) => {
       queryClient.invalidateQueries(["pacientes"]);
       if (onSuccess) onSuccess(data);
