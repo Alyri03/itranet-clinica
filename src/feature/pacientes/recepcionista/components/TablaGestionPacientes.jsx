@@ -180,9 +180,10 @@ export default function TablaGestionPaciente() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSuccess={() => {
-          setModalOpen(false);
+          setModalOpen(false); 
         }}
       />
+
       <DialogEditarPaciente
         open={modalEditarOpen}
         onClose={() => setModalEditarOpen(false)}

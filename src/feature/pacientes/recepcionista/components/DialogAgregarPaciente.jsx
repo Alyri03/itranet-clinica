@@ -16,6 +16,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const sexoOptions = [
   { value: "MASCULINO", label: "Masculino" },
@@ -55,9 +56,12 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
 
   const mutation = useCrearPaciente({
     onSuccess: () => {
-      if (onSuccess) onSuccess();
-      onClose();
+      console.log("onSuccess ejecutado"); // Verifica si llega aquí
       resetForm();
+      setTimeout(() => {
+        toast.success("Datos iniciales del usuario enviados");
+      }, 100);
+      if (onSuccess) onSuccess();
     },
     onError: (err) => {
       setError(err?.message || "Error al registrar paciente");
@@ -65,8 +69,10 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
   });
 
   useEffect(() => {
-    if (!open) resetForm();
-    setError("");
+    if (!open) {
+      resetForm();
+      setError("");
+    }
   }, [open]);
 
   const resetForm = () =>
