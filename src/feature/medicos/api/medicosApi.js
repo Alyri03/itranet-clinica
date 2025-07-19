@@ -59,11 +59,23 @@ export const addRelacionMedicoEspecialidad = async (relacion) => {
   const { data } = await axiosInstance.post("/medico-especialidad", relacion);
   return data;
 };
-export const updateRelacionMedicoEspecialidad = async (medicoId, especialidadId, body) => {
-  const { data } = await axiosInstance.put(`/medico-especialidad/${medicoId}/${especialidadId}`, body);
+export const updateRelacionMedicoEspecialidad = async (
+  medicoId,
+  especialidadId,
+  body
+) => {
+  const { data } = await axiosInstance.put(
+    `/medico-especialidad/${medicoId}/${especialidadId}`,
+    body
+  );
   return data;
 };
-export const deleteRelacionMedicoEspecialidad = async (medicoId, especialidadId) => {
-  const { data } = await axiosInstance.delete(`/medico-especialidad/${medicoId}/${especialidadId}`);
+export const deleteRelacionMedicoEspecialidad = async (
+  medicoId,
+  especialidadId
+) => {
+  const { data } = await axiosInstance.delete(
+    `/medico-especialidad/${medicoId}/${especialidadId}`
+  );
   return data;
 };
