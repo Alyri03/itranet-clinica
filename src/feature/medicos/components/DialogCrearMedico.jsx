@@ -72,7 +72,6 @@ export default function DialogCrearMedico({ open, onClose }) {
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleSubmit = () => {
     const {
       nombres,
@@ -91,6 +90,43 @@ export default function DialogCrearMedico({ open, onClose }) {
       correo,
       password,
     } = form;
+
+    // Validaciones simples
+    if (
+      !nombres ||
+      !apellidos ||
+      !numeroDocumento ||
+      !numeroColegiatura ||
+      !telefono ||
+      !direccion ||
+      !correo ||
+      !password
+    ) {
+      toast.error("Completa todos los campos obligatorios");
+      return;
+    }
+
+    if (numeroDocumento.length !== 8) {
+      toast.error("El número de documento debe tener 8 dígitos");
+      return;
+    }
+
+    if (numeroColegiatura.length !== 11) {
+      toast.error("El número de colegiatura debe tener 11 dígitos");
+      return;
+    }
+
+    if (tipoMedico === "ESPECIALISTA") {
+      if (!numeroRNE || numeroRNE.length !== 9) {
+        toast.error("El RNE debe tener 9 dígitos");
+        return;
+      }
+
+      if (!form.especialidadSeleccionada) {
+        toast.error("Selecciona una especialidad");
+        return;
+      }
+    }
 
     const payload = {
       nombres,

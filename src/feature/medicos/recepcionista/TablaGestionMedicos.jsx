@@ -12,12 +12,15 @@ import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { useMedico } from "../hooks/useMedico";
 import DialogCrearMedico from "../components/DialogCrearMedico";
 import DialogEliminarMedico from "../components/DialogEliminarMedico";
+import DialogEditarMedico from "../components/DialogEditarMedico";
 import { useState } from "react";
 
 export default function TablaGestionMedicos() {
   const { data: medicos = [], isLoading, refetch } = useMedico();
-  const [openDialog, setOpenDialog] = useState(false);
-  const [medicoSeleccionado, setMedicoSeleccionado] = useState(null);
+
+  const [openCrear, setOpenCrear] = useState(false);
+  const [medicoAEliminar, setMedicoAEliminar] = useState(null);
+  const [medicoAEditar, setMedicoAEditar] = useState(null);
 
   if (isLoading) return <p className="text-gray-500">Cargando médicos...</p>;
 
@@ -25,17 +28,24 @@ export default function TablaGestionMedicos() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Listado de Médicos</h2>
-        <Button onClick={() => setOpenDialog(true)}>
+        <Button onClick={() => setOpenCrear(true)}>
           <UserPlus size={18} className="mr-2" />
           Nuevo Médico
         </Button>
       </div>
 
-      <DialogCrearMedico open={openDialog} onClose={() => setOpenDialog(false)} />
+      {/* Dialogs */}
+      <DialogCrearMedico open={openCrear} onClose={() => setOpenCrear(false)} />
       <DialogEliminarMedico
-        medico={medicoSeleccionado}
-        open={!!medicoSeleccionado}
-        onClose={() => setMedicoSeleccionado(null)}
+        medico={medicoAEliminar}
+        open={!!medicoAEliminar}
+        onClose={() => setMedicoAEliminar(null)}
+        onSuccess={refetch}
+      />
+      <DialogEditarMedico
+        open={!!medicoAEditar}
+        onClose={() => setMedicoAEditar(null)}
+        medico={medicoAEditar}
         onSuccess={refetch}
       />
 
@@ -71,13 +81,17 @@ export default function TablaGestionMedicos() {
                 <Badge className="bg-green-600 hover:bg-green-700">Activo</Badge>
               </TableCell>
               <TableCell className="flex gap-2 justify-center">
-                <Button variant="outline" size="icon">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setMedicoAEditar(medico)}
+                >
                   <Pencil size={16} />
                 </Button>
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={() => setMedicoSeleccionado(medico)}
+                  onClick={() => setMedicoAEliminar(medico)}
                 >
                   <Trash2 size={16} />
                 </Button>

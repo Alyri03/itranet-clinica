@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
-import { deleteMedico } from "../api/medicosApi";
+import { useEliminarMedico } from "../hooks/useEliminarMedico";
 
 export default function DialogEliminarMedico({
   medico,
@@ -18,29 +17,40 @@ export default function DialogEliminarMedico({
   onSuccess,
 }) {
   const [internalOpen, setInternalOpen] = useState(open);
+  const [isWaiting, setIsWaiting] = useState(false); // para el timeout
 
   useEffect(() => {
     setInternalOpen(open);
   }, [open]);
 
-  const eliminarMutation = useMutation({
-    mutationFn: async (medico) => {
-      if (!medico) throw new Error("Médico no definido");
-      return await deleteMedico(medico.id);
-    },
-    onSuccess: () => {
+  const eliminarMutation = useEliminarMedico({
+    onSuccess: async () => {
       toast.success("Médico eliminado correctamente");
+      setInternalOpen(false);
       onClose();
       onSuccess?.();
+      // Espera 3s antes de permitir otra eliminación
+      setIsWaiting(true);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setIsWaiting(false);
     },
-    onError: (err) => {
+    onError: async (err) => {
       console.error("Error al eliminar:", err);
       toast.error("Error al eliminar el médico");
+
+      setInternalOpen(false);
+      onClose();
+
+      setIsWaiting(true);
+      await new Promise((res) => setTimeout(res, 3000));
+      setIsWaiting(false);
     },
   });
 
   const handleEliminar = () => {
-    eliminarMutation.mutate(medico);
+    if (medico?.id && !isWaiting && !eliminarMutation.isLoading) {
+      eliminarMutation.mutate(medico.id);
+    }
   };
 
   if (!medico) return null;
@@ -59,15 +69,25 @@ export default function DialogEliminarMedico({
           ?
         </p>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setInternalOpen(false);
+              onClose();
+            }}
+          >
             Cancelar
           </Button>
           <Button
             variant="destructive"
             onClick={handleEliminar}
-            disabled={eliminarMutation.isLoading}
+            disabled={eliminarMutation.isLoading || isWaiting}
           >
-            {eliminarMutation.isLoading ? "Eliminando..." : "Eliminar"}
+            {eliminarMutation.isLoading
+              ? "Eliminando..."
+              : isWaiting
+              ? "Espera un momento..."
+              : "Eliminar"}
           </Button>
         </DialogFooter>
       </DialogContent>
