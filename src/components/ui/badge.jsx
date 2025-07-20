@@ -19,6 +19,8 @@ const badgeVariants = cva(
         "estado-atendida": "bg-green-100 text-green-800",
         "estado-no-presentado": "bg-gray-100 text-gray-600",
         "estado-reprogramada": "bg-purple-100 text-purple-800",
+        especialista: "bg-blue-100 text-blue-800 border-blue-200",
+        general: "bg-gray-100 text-gray-700 border-gray-200",
       },
     },
     defaultVariants: {
@@ -26,7 +28,6 @@ const badgeVariants = cva(
     },
   }
 );
-
 
 function Badge({ className, variant, estado, asChild = false, ...props }) {
   const Comp = asChild ? Slot : "span";
