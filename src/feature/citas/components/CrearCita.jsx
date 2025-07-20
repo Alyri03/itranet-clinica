@@ -10,16 +10,13 @@ import { Input } from "@/components/ui/input";
 import { useCrearCita } from "../hooks/useCrearCita";
 import { useServicios } from "../../medicos/hooks/useServicios";
 import { useBloquesByMedico } from "../../medicos/hooks/useBloquesByMedico";
-import { useMedico } from "../../medicos/hooks/useMedico";
 import { useEspecialidadByMedico } from "../../medicos/hooks/useEspecialidadByMedico";
 import { useBuscarPacientePorDocumento } from "../../pacientes/hooks/useBuscarPacientePorDocumento";
-
 export default function CrearCita({ onSuccess }) {
   const user = useAuthStore((s) => s.user);
   const rol = user?.rol;
   const pacienteIdFromAuth = useAuthStore((s) => s.pacienteId);
   const { data: servicios = [] } = useServicios();
-  const { data: medicos = [] } = useMedico();
 
   const [modo, setModo] = useState("servicio");
   const [servicioId, setServicioId] = useState("");

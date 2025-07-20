@@ -2,6 +2,7 @@ import { useServicios } from "../../medicos/hooks/useServicios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Spinner from "../../../components/Spinner";
 
 export default function ServiciosGrid({ value, onChange }) {
   const { data: servicios = [], isLoading } = useServicios();
@@ -14,7 +15,11 @@ export default function ServiciosGrid({ value, onChange }) {
   const serviciosPagina = servicios.slice(inicio, fin);
 
   if (isLoading) {
-    return <p className="text-gray-500">Cargando servicios...</p>;
+    return (
+      <div className="flex items-center justify-center h-32">
+        <Spinner />
+      </div>
+    );
   }
 
   return (

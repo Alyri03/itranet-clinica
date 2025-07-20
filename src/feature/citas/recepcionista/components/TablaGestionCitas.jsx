@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { ordenarCitas } from "../../../../utils/FiltrarCitas";
 import { useGetCitas } from "../../hooks/useGetCitas";
 import {
   Table,
@@ -14,10 +15,14 @@ import { usePacientes } from "../../../pacientes/hooks/usePacientes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarClock, CheckCircle, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import DialogConfirmar from "../../components/DialogConfirmar";
 import DialogCancelar from "../../components/DialogCancelar";
 import { useConfirmarCita } from "../../hooks/useConfirmarCita";
 import { useQueryClient } from "@tanstack/react-query";
+import Spinner from "../../../../components/Spinner";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getInitials } from "../../../../utils/Avatar";
 
 export default function TablaGestionCitas() {
   const { data: citasRaw = [], isLoading } = useGetCitas();
@@ -28,10 +33,12 @@ export default function TablaGestionCitas() {
 
   const citas = useMemo(
     () =>
-      citasRaw.map((c) => ({
-        ...c,
-        id: c.citaId,
-      })),
+      ordenarCitas(
+        citasRaw.map((c) => ({
+          ...c,
+          id: c.citaId,
+        }))
+      ),
     [citasRaw]
   );
 
@@ -55,23 +62,24 @@ export default function TablaGestionCitas() {
   const handleCerrarConfirmar = () => setCitaAConfirmar(null);
 
   const handleConfirmar = (citaId) => {
-    console.log("➡️ Confirmando cita con ID:", citaId);
-
     confirmarCitaMutation.mutate(citaId, {
       onSuccess: () => {
-        console.log("✅ Cita confirmada con éxito");
         handleCerrarConfirmar();
         queryClient.invalidateQueries({ queryKey: ["Citas"] });
       },
-      onError: (err) => {
-        console.error("❌ Error al confirmar cita:", err);
+      onError: () => {
         handleCerrarConfirmar();
       },
     });
   };
 
   if (isLoading)
-    return <p className="text-muted-foreground">Cargando citas...</p>;
+    return (
+      <div className="flex items-center justify-center h-40">
+        <Spinner />
+        <span className="ml-3 text-muted-foreground">Cargando citas...</span>
+      </div>
+    );
 
   return (
     <div className="border rounded-md p-4 space-y-4">
@@ -99,42 +107,91 @@ export default function TablaGestionCitas() {
             return (
               <TableRow key={cita.id}>
                 <TableCell>
-                  {paciente
-                    ? `${paciente.nombres} ${paciente.apellidos}`
-                    : "No disponible"}
+                  {paciente ? (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        {paciente.imagenUrl ? (
+                          <AvatarImage
+                            src={paciente.imagenUrl}
+                            alt={`${paciente.nombres} ${paciente.apellidos}`}
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-blue-500 text-white ">
+                          {getInitials(paciente.nombres, paciente.apellidos)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>
+                        {paciente.nombres} {paciente.apellidos}
+                      </span>
+                    </div>
+                  ) : (
+                    "No disponible"
+                  )}
                 </TableCell>
                 <TableCell>
-                  {medico
-                    ? `${medico.nombres} ${medico.apellidos}`
-                    : "No disponible"}
+                  {medico ? (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        {medico.imagenUrl ? (
+                          <AvatarImage
+                            src={medico.imagenUrl}
+                            alt={`${medico.nombres} ${medico.apellidos}`}
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-purple-700 text-white ">
+                          {getInitials(medico.nombres, medico.apellidos)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>
+                        {medico.nombres} {medico.apellidos}
+                      </span>
+                    </div>
+                  ) : (
+                    "No disponible"
+                  )}
                 </TableCell>
+
                 <TableCell>{servicio?.nombre || "No disponible"}</TableCell>
-                <TableCell>{`${cita.fecha} ${cita.hora}`}</TableCell>
+                <TableCell>
+                  <div>
+                    {cita.fecha}
+                    <div className="text-xs text-gray-500">{cita.hora}</div>
+                  </div>
+                </TableCell>
+
                 <TableCell>
                   <Badge variant={badgeVariant}>{cita.estadoCita}</Badge>
                 </TableCell>
                 <TableCell className="flex justify-center gap-2">
-                  <Button variant="outline" size="icon" title="Reprogramar">
-                    <CalendarClock className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    title="Confirmar"
-                    onClick={() => handleAbrirConfirmar(cita)}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    title="Cancelar"
-                    onClick={() =>
-                      setDialogCancelar({ open: true, citaId: cita.id })
-                    }
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </Button>
+                  {cita.estadoCita === "PENDIENTE" ? (
+                    <>
+                      <Button variant="outline" size="icon" title="Reprogramar">
+                        <CalendarClock className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        title="Confirmar"
+                        onClick={() => handleAbrirConfirmar(cita)}
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        title="Cancelar"
+                        onClick={() =>
+                          setDialogCancelar({ open: true, citaId: cita.id })
+                        }
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="icon" title="Ver Detalles">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             );

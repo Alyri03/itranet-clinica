@@ -6,7 +6,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import Spinner from "../../../components/Spinner";
 
 export default function SelectBloquesMedico({ medicoId, value, onChange }) {
   const {
@@ -30,6 +30,16 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
     (b) => String(b.id) === String(value)
   );
 
+  // 👉 Muestra el Spinner mientras carga
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-40">
+        <Spinner />
+        <span className="mt-3 text-gray-500">Cargando horarios...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3 w-full max-w-2xl mx-auto">
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -44,15 +54,10 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
               setDiaSeleccionado(v);
               onChange(""); // limpiar selección anterior
             }}
-            disabled={isLoading || diasDisponibles.length === 0}
+            disabled={diasDisponibles.length === 0}
           >
             <SelectTrigger className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-base focus:ring-2 focus:ring-blue-500">
-              {isLoading ? (
-                <span className="flex items-center gap-2 text-gray-500">
-                  <Loader2 className="animate-spin" size={18} />
-                  Cargando días...
-                </span>
-              ) : diaSeleccionado ? (
+              {diaSeleccionado ? (
                 diaSeleccionado
               ) : (
                 <span className="text-gray-400">Selecciona un día</span>
@@ -125,7 +130,7 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
           Error al cargar los horarios.
         </p>
       )}
-      {!isLoading && !isError && diasDisponibles.length === 0 && (
+      {!isError && diasDisponibles.length === 0 && (
         <p className="text-orange-500 text-xs mt-1 text-center">
           No hay horarios disponibles para este médico.
         </p>

@@ -3,7 +3,7 @@ import { useMedicosByEspecialidad } from "../../medicos/hooks/useMedicosByEspeci
 import { useMedico } from "../../medicos/hooks/useMedico";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import Spinner from "../../../components/Spinner";
 
 export default function MedicosGrid({ especialidadId, value, onChange }) {
   const esDirecto = !especialidadId;
@@ -26,12 +26,12 @@ export default function MedicosGrid({ especialidadId, value, onChange }) {
 
   return (
     <div className="w-full space-y-4">
-      
-
       {isLoading ? (
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
-          <Loader2 className="animate-spin" size={18} />
-          Cargando médicos...
+        <div className="flex items-center justify-center h-32">
+          <Spinner />
+          <span className="ml-3 text-gray-500 text-sm">
+            Cargando médicos...
+          </span>
         </div>
       ) : isError ? (
         <p className="text-red-500 text-sm">Error al cargar médicos.</p>
