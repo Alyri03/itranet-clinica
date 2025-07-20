@@ -12,6 +12,7 @@ import { useServicios } from "../../medicos/hooks/useServicios";
 import { useBloquesByMedico } from "../../medicos/hooks/useBloquesByMedico";
 import { useEspecialidadByMedico } from "../../medicos/hooks/useEspecialidadByMedico";
 import { useBuscarPacientePorDocumento } from "../../pacientes/hooks/useBuscarPacientePorDocumento";
+
 export default function CrearCita({ onSuccess }) {
   const user = useAuthStore((s) => s.user);
   const rol = user?.rol;
@@ -88,6 +89,7 @@ export default function CrearCita({ onSuccess }) {
     console.log("Enviando cita:", body);
   };
 
+  // INPUT de búsqueda SIEMPRE ARRIBA para recepcionista
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-xl font-semibold text-center">Reservar nueva cita</h2>
@@ -118,149 +120,166 @@ export default function CrearCita({ onSuccess }) {
         </div>
       )}
 
-      <Tabs value={modo} onValueChange={setModo} className="space-y-6 w-full">
-        <div className="flex justify-center">
-          <TabsList>
-            <TabsTrigger value="servicio">Por Servicio</TabsTrigger>
-            <TabsTrigger value="medico">Por Médico</TabsTrigger>
-          </TabsList>
+      {/* Mostrar mensaje SOLO si es recepcionista, NO está buscando y aún NO hay paciente */}
+      {rol === "RECEPCIONISTA" && !pacienteBuscado && !buscandoPaciente && (
+        <div className="p-4 text-center text-muted-foreground">
+          Primero debes seleccionar un paciente.
         </div>
+      )}
 
-        {/* Por Servicio */}
-        <TabsContent value="servicio" className="space-y-6">
-          <div className="border-b pb-2">
-            <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                1
-              </span>
-              Selecciona un servicio
-            </p>
-
-            <ServiciosGrid
-              value={servicioId}
-              onChange={(id) => {
-                const servicio = servicios.find(
-                  (s) => String(s.id) === String(id)
-                );
-                handleServicioSeleccionado(id, servicio?.especialidadId);
-              }}
-            />
-          </div>
-
-          {especialidadId && (
-            <div className="border-b pb-4">
-              <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                  2
-                </span>
-                Selecciona un medico
-              </p>
-              <MedicosGrid
-                especialidadId={especialidadId}
-                value={medicoId}
-                onChange={setMedicoId}
-              />
-            </div>
-          )}
-
-          {medicoId && (
-            <div className="border-b pb-4">
-              <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                  3
-                </span>
-                Selecciona un horario
-              </p>
-              <SelectBloquesMedico
-                medicoId={medicoId}
-                value={bloqueId}
-                onChange={setBloqueId}
-              />
-            </div>
-          )}
-
-          {bloqueId && (
-            <div className="border-b pb-4">
-              <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                  4
-                </span>
-                Motivo de consulta
-              </p>
-              <NotasCita value={nota} onChange={setNota} />
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Por Médico */}
-        <TabsContent value="medico" className="space-y-6">
-          {/* Paso 1 */}
-          <div className="border-b pb-4">
-            <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                1
-              </span>
-              Selecciona un médico
-            </p>
-
-            <MedicosGrid modoDirecto value={medicoId} onChange={setMedicoId} />
-
-            {especialidadesMedico.length > 0 && (
-              <div className="bg-slate-50 border rounded-md p-3 text-sm text-gray-700 mt-4">
-                <p>
-                  <strong>Especialidad:</strong>{" "}
-                  {especialidadesMedico[0]?.nombreEspecialidad ||
-                    "No especificada"}
-                </p>
-                <p>
-                  <strong>Servicio:</strong>{" "}
-                  {servicioEncontrado?.nombre || "No asignado"}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Paso 2 */}
-          {medicoId && (
-            <div className="border-b pb-4">
-              <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                  2
-                </span>
-                Selecciona un horario
-              </p>
-              <SelectBloquesMedico
-                medicoId={medicoId}
-                value={bloqueId}
-                onChange={setBloqueId}
-              />
-            </div>
-          )}
-
-          {/* Paso 3 */}
-          {bloqueId && (
-            <div className="border-b pb-4">
-              <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
-                  3
-                </span>
-                Motivo de consulta
-              </p>
-              <NotasCita value={nota} onChange={setNota} />
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {bloqueId && (
-        <div className="flex justify-end pt-4">
-          <Button
-            onClick={handleRegistrar}
-            disabled={isLoading || !pacienteId || !medicoId || !bloqueId}
+      {/* Mostrar el formulario solo si es paciente o ya hay paciente buscado */}
+      {(rol !== "RECEPCIONISTA" || pacienteBuscado) && (
+        <>
+          <Tabs
+            value={modo}
+            onValueChange={setModo}
+            className="space-y-6 w-full"
           >
-            {isLoading ? "Registrando..." : "Confirmar cita"}
-          </Button>
-        </div>
+            <div className="flex justify-center">
+              <TabsList>
+                <TabsTrigger value="servicio">Por Servicio</TabsTrigger>
+                <TabsTrigger value="medico">Por Médico</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Por Servicio */}
+            <TabsContent value="servicio" className="space-y-6">
+              <div className="border-b pb-2">
+                <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                    1
+                  </span>
+                  Selecciona un servicio
+                </p>
+
+                <ServiciosGrid
+                  value={servicioId}
+                  onChange={(id) => {
+                    const servicio = servicios.find(
+                      (s) => String(s.id) === String(id)
+                    );
+                    handleServicioSeleccionado(id, servicio?.especialidadId);
+                  }}
+                />
+              </div>
+
+              {especialidadId && (
+                <div className="border-b pb-4">
+                  <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                      2
+                    </span>
+                    Selecciona un medico
+                  </p>
+                  <MedicosGrid
+                    especialidadId={especialidadId}
+                    value={medicoId}
+                    onChange={setMedicoId}
+                  />
+                </div>
+              )}
+
+              {medicoId && (
+                <div className="border-b pb-4">
+                  <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                      3
+                    </span>
+                    Selecciona un horario
+                  </p>
+                  <SelectBloquesMedico
+                    medicoId={medicoId}
+                    value={bloqueId}
+                    onChange={setBloqueId}
+                  />
+                </div>
+              )}
+
+              {bloqueId && (
+                <div className="border-b pb-4">
+                  <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                      4
+                    </span>
+                    Motivo de consulta
+                  </p>
+                  <NotasCita value={nota} onChange={setNota} />
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Por Médico */}
+            <TabsContent value="medico" className="space-y-6">
+              <div className="border-b pb-4">
+                <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                    1
+                  </span>
+                  Selecciona un médico
+                </p>
+
+                <MedicosGrid
+                  modoDirecto
+                  value={medicoId}
+                  onChange={setMedicoId}
+                />
+
+                {especialidadesMedico.length > 0 && (
+                  <div className="bg-slate-50 border rounded-md p-3 text-sm text-gray-700 mt-4">
+                    <p>
+                      <strong>Especialidad:</strong>{" "}
+                      {especialidadesMedico[0]?.nombreEspecialidad ||
+                        "No especificada"}
+                    </p>
+                    <p>
+                      <strong>Servicio:</strong>{" "}
+                      {servicioEncontrado?.nombre || "No asignado"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {medicoId && (
+                <div className="border-b pb-4">
+                  <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                      2
+                    </span>
+                    Selecciona un horario
+                  </p>
+                  <SelectBloquesMedico
+                    medicoId={medicoId}
+                    value={bloqueId}
+                    onChange={setBloqueId}
+                  />
+                </div>
+              )}
+
+              {bloqueId && (
+                <div className="border-b pb-4">
+                  <p className="flex items-center gap-4 font-medium text-gray-800 pb-3">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-sm">
+                      3
+                    </span>
+                    Motivo de consulta
+                  </p>
+                  <NotasCita value={nota} onChange={setNota} />
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          {bloqueId && (
+            <div className="flex justify-end pt-4">
+              <Button
+                onClick={handleRegistrar}
+                disabled={isLoading || !pacienteId || !medicoId || !bloqueId}
+              >
+                {isLoading ? "Registrando..." : "Confirmar cita"}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

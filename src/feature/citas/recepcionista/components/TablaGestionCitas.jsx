@@ -23,6 +23,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Spinner from "../../../../components/Spinner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "../../../../utils/Avatar";
+import { normalizarEstadoBadge } from "../../../../utils/badgeEstadoNormalizer";
 
 export default function TablaGestionCitas() {
   const { data: citasRaw = [], isLoading } = useGetCitas();
@@ -57,6 +58,11 @@ export default function TablaGestionCitas() {
   });
 
   const confirmarCitaMutation = useConfirmarCita();
+
+  function formatearEstadoTexto(estado) {
+    if (!estado) return "";
+    return estado.replace(/_/g, " ").toUpperCase();
+  }
 
   const handleAbrirConfirmar = (cita) => setCitaAConfirmar(cita);
   const handleCerrarConfirmar = () => setCitaAConfirmar(null);
@@ -101,8 +107,9 @@ export default function TablaGestionCitas() {
             const paciente = pacientes.find((p) => p.id === cita.pacienteId);
             const medico = medicos.find((m) => m.id === cita.medicoId);
             const servicio = servicios.find((s) => s.id === cita.servicioId);
-            const estadoLower = cita.estadoCita?.toLowerCase();
-            const badgeVariant = `estado-${estadoLower}`;
+            const badgeVariant = `estado-${normalizarEstadoBadge(
+              cita.estadoCita
+            )}`;
 
             return (
               <TableRow key={cita.id}>
@@ -160,8 +167,11 @@ export default function TablaGestionCitas() {
                 </TableCell>
 
                 <TableCell>
-                  <Badge variant={badgeVariant}>{cita.estadoCita}</Badge>
+                  <Badge variant={badgeVariant}>
+                    {formatearEstadoTexto(cita.estadoCita)}
+                  </Badge>
                 </TableCell>
+
                 <TableCell className="flex justify-center gap-2">
                   {cita.estadoCita === "PENDIENTE" ? (
                     <>
