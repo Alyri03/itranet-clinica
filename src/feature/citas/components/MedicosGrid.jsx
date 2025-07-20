@@ -26,9 +26,7 @@ export default function MedicosGrid({ especialidadId, value, onChange }) {
 
   return (
     <div className="w-full space-y-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Médico
-      </label>
+      
 
       {isLoading ? (
         <div className="flex items-center gap-2 text-gray-500 text-sm">
