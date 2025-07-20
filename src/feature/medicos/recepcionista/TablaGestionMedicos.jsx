@@ -24,8 +24,9 @@ import Spinner from "../../../components/Spinner";
 function CeldaEspecialidad({ medico }) {
   const { data: especialidades = [], isLoading } = useEspecialidadByMedico(
     medico.id,
-    medico.tipoMedico === "ESPECIALISTA"
+    { enabled: medico.tipoMedico === "ESPECIALISTA" }
   );
+
   if (medico.tipoMedico !== "ESPECIALISTA")
     return <span className="text-gray-400 italic">No aplica</span>;
   if (isLoading)

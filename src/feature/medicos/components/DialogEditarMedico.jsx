@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,28 +31,38 @@ export default function DialogEditarMedico({
   const eliminarEspecialidad = useEliminarEspecialidadDeMedico();
   const asignarEspecialidad = useAsignarEspecialidad();
   const { data: especialidadesAsignadas = [], refetch } =
-    useEspecialidadByMedico(medico?.id);
+    useEspecialidadByMedico(medico?.id, { enabled: !!medico?.id && open });
 
   const [form, setForm] = useState({});
   const [nuevaEspecialidadId, setNuevaEspecialidadId] = useState("");
+  // Estado local temporal para las especialidades
+  const [especialidadesLocal, setEspecialidadesLocal] = useState([]);
 
   useEffect(() => {
     if (medico) {
       setForm({
         nombres: medico.nombres ?? "",
         apellidos: medico.apellidos ?? "",
-        numeroColegiatura: medico.numeroColegiatura ?? "",
-        numeroRNE: medico.numeroRNE ?? "",
         tipoDocumentoId: medico.tipoDocumentoId?.toString() ?? "",
         numeroDocumento: medico.numeroDocumento ?? "",
+        numeroColegiatura: medico.numeroColegiatura ?? "",
+        tipoMedico: medico.tipoMedico ?? "GENERAL",
+        numeroRNE: medico.numeroRNE ?? "",
         telefono: medico.telefono ?? "",
         direccion: medico.direccion ?? "",
         descripcion: medico.descripcion ?? "",
         tipoContrato: medico.tipoContrato ?? "FIJO",
-        tipoMedico: medico.tipoMedico ?? "GENERAL",
       });
     }
   }, [medico]);
+
+  useEffect(() => {
+    if (open && especialidadesAsignadas) {
+      setEspecialidadesLocal(
+        especialidadesAsignadas.map((esp) => String(esp.especialidadId))
+      );
+    }
+  }, [open, medico?.id]);
 
   const actualizarMedico = useActualizarMedico({
     onSuccess: () => {
@@ -73,62 +78,47 @@ export default function DialogEditarMedico({
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    // NO toques especialidadesLocal aquí
   };
 
-  const handleEliminarEspecialidad = async (id) => {
-    try {
-      await eliminarEspecialidad.mutateAsync({
-        medicoId: medico.id,
-        especialidadId: id,
-      });
-      toast.success("Especialidad eliminada");
-      await refetch();
-    } catch (error) {
-      toast.error("Error al eliminar especialidad");
-    }
+  // Solo modifica el estado local
+  const handleEliminarEspecialidad = (id) => {
+    setEspecialidadesLocal((prev) => prev.filter((e) => e !== String(id)));
   };
 
-  const handleAgregarEspecialidad = async () => {
-    if (!nuevaEspecialidadId) return;
-
-    const yaExiste = especialidadesAsignadas.find(
-      (esp) => esp.especialidadId === parseInt(nuevaEspecialidadId)
-    );
-    if (yaExiste) {
-      toast.warning("La especialidad ya está asignada");
-      return;
-    }
-
-    try {
-      await asignarEspecialidad.mutateAsync({
-        medicoId: medico.id,
-        especialidadId: parseInt(nuevaEspecialidadId),
-        desdeFecha: new Date().toISOString().slice(0, 10),
-      });
-
-      toast.success("Especialidad asignada");
+  const handleAgregarEspecialidad = () => {
+    if (
+      nuevaEspecialidadId &&
+      !especialidadesLocal.includes(nuevaEspecialidadId)
+    ) {
+      setEspecialidadesLocal((prev) => [...prev, nuevaEspecialidadId]);
       setNuevaEspecialidadId("");
-      await refetch();
-    } catch (error) {
-      toast.error("Error al asignar especialidad");
     }
   };
 
+  // Especialidades que aún no están seleccionadas
+  const especialidadesDisponibles = especialidades
+    ? especialidades.filter(
+        (esp) => !especialidadesLocal.includes(String(esp.id))
+      )
+    : [];
+
+  // Al guardar:
   const handleSubmit = async () => {
     if (!medico?.id) return;
 
     const camposActualizables = [
       "nombres",
       "apellidos",
-      "numeroColegiatura",
-      "numeroRNE",
       "tipoDocumentoId",
       "numeroDocumento",
+      "numeroColegiatura",
+      "tipoMedico",
+      "numeroRNE",
       "telefono",
       "direccion",
       "descripcion",
       "tipoContrato",
-      "tipoMedico",
     ];
 
     const payload = {};
@@ -140,9 +130,48 @@ export default function DialogEditarMedico({
     }
 
     try {
+      // 1. Actualizar datos básicos
       await actualizarMedico.mutateAsync({ id: medico.id, medico: payload });
+
+      // 2. Actualizar especialidades SOLO si es especialista
+      if (form.tipoMedico === "ESPECIALISTA") {
+        const originales = especialidadesAsignadas.map((e) =>
+          String(e.especialidadId)
+        );
+        const nuevas = especialidadesLocal;
+
+        const paraAgregar = nuevas.filter((id) => !originales.includes(id));
+        const paraEliminar = originales.filter((id) => !nuevas.includes(id));
+
+        for (const id of paraEliminar) {
+          await eliminarEspecialidad.mutateAsync({
+            medicoId: medico.id,
+            especialidadId: parseInt(id),
+          });
+        }
+        for (const id of paraAgregar) {
+          await asignarEspecialidad.mutateAsync({
+            medicoId: medico.id,
+            especialidadId: parseInt(id),
+            desdeFecha: new Date().toISOString().slice(0, 10),
+          });
+        }
+      } else if (form.tipoMedico === "GENERAL") {
+        // Si se cambia a GENERAL y se guarda, elimina todas
+        for (const esp of especialidadesAsignadas) {
+          await eliminarEspecialidad.mutateAsync({
+            medicoId: medico.id,
+            especialidadId: esp.especialidadId,
+          });
+        }
+      }
+      await refetch();
+
+      toast.success("Especialidades actualizadas correctamente");
+      onSuccess?.();
+      onClose();
     } catch (error) {
-      toast.error("Error al actualizar médico");
+      toast.error("Error al actualizar médico o especialidades");
       console.error(error);
     }
   };
@@ -151,39 +180,46 @@ export default function DialogEditarMedico({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Editar Médico</DialogTitle>
-        </DialogHeader>
-
-        <div className="grid gap-3">
-          {/* Nombres y Apellidos */}
-          <div className="grid grid-cols-2 gap-2">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto py-10 px-8 rounded-2xl">
+        <div className="flex items-center justify-between mb-2">
+          <DialogTitle className="text-2xl font-semibold">
+            Editar Médico
+          </DialogTitle>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          className="space-y-6 mt-2"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Nombres */}
             <div>
-              <Label>Nombres</Label>
+              <Label className="mb-1 flex items-center gap-1">Nombres</Label>
               <Input
                 value={form.nombres}
                 onChange={(e) => handleChange("nombres", e.target.value)}
               />
             </div>
+            {/* Apellidos */}
             <div>
-              <Label>Apellidos</Label>
+              <Label className="mb-1 flex items-center gap-1">Apellidos</Label>
               <Input
                 value={form.apellidos}
                 onChange={(e) => handleChange("apellidos", e.target.value)}
               />
             </div>
-          </div>
-
-          {/* Documento */}
-          <div className="grid grid-cols-2 gap-2">
+            {/* Tipo Documento */}
             <div>
-              <Label>Tipo Documento</Label>
+              <Label className="mb-1 flex items-center gap-1">
+                Tipo Documento
+              </Label>
               <Select
                 value={form.tipoDocumentoId}
                 onValueChange={(val) => handleChange("tipoDocumentoId", val)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full h-10">
                   <SelectValue placeholder="Selecciona" />
                 </SelectTrigger>
                 <SelectContent>
@@ -195,8 +231,11 @@ export default function DialogEditarMedico({
                 </SelectContent>
               </Select>
             </div>
+            {/* N° Documento */}
             <div>
-              <Label>N° Documento</Label>
+              <Label className="mb-1 flex items-center gap-1">
+                N° Documento
+              </Label>
               <Input
                 value={form.numeroDocumento}
                 onChange={(e) =>
@@ -204,12 +243,11 @@ export default function DialogEditarMedico({
                 }
               />
             </div>
-          </div>
-
-          {/* Colegiatura y RNE */}
-          <div className="grid grid-cols-2 gap-2">
+            {/* N° Colegiatura */}
             <div>
-              <Label>N° Colegiatura</Label>
+              <Label className="mb-1 flex items-center gap-1">
+                N° Colegiatura
+              </Label>
               <Input
                 value={form.numeroColegiatura}
                 onChange={(e) =>
@@ -217,144 +255,163 @@ export default function DialogEditarMedico({
                 }
               />
             </div>
+            {/* Tipo Médico */}
+            <div>
+              <Label className="mb-1 flex items-center gap-1">
+                Tipo Médico
+              </Label>
+              <Select
+                value={form.tipoMedico}
+                onValueChange={(val) => handleChange("tipoMedico", val)}
+              >
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder="Selecciona" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GENERAL">General</SelectItem>
+                  <SelectItem value="ESPECIALISTA">Especialista</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* RNE solo especialista */}
             {form.tipoMedico === "ESPECIALISTA" && (
-              <div>
-                <Label>N° RNE</Label>
+              <div className="md:col-span-2">
+                <Label className="mb-1 flex items-center gap-1">
+                  RNE (Registro Nacional de Especialistas)
+                </Label>
                 <Input
                   value={form.numeroRNE || ""}
                   onChange={(e) => handleChange("numeroRNE", e.target.value)}
                 />
               </div>
             )}
-          </div>
-
-          {/* Especialidades asignadas */}
-          {form.tipoMedico === "ESPECIALISTA" && (
-            <div className="space-y-2">
-              <Label>Especialidades Asignadas</Label>
-              {especialidadesAsignadas.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  No tiene especialidades asignadas
-                </p>
-              ) : (
-                especialidadesAsignadas.map((esp) => (
-                  <div
-                    key={esp.especialidadId}
-                    className="flex items-center justify-between bg-gray-100 p-2 rounded"
-                  >
-                    <span>{esp.nombreEspecialidad}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        handleEliminarEspecialidad(esp.especialidadId)
-                      }
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                ))
-              )}
-
-              {/* Agregar nueva */}
-              <div className="grid grid-cols-3 gap-2 items-end mt-2">
-                <div className="col-span-2">
-                  <Label>Nueva Especialidad</Label>
+            {/* ESPECIALIDADES UI */}
+            {form.tipoMedico === "ESPECIALISTA" && (
+              <div className="md:col-span-2">
+                <Label className="mb-1 flex items-center gap-1">
+                  Especialidades{" "}
+                  <span className="text-red-500 text-base">*</span>
+                </Label>
+                {/* Selector y botón de agregar */}
+                <div className="flex gap-2 mb-2">
                   <Select
                     value={nuevaEspecialidadId}
-                    onValueChange={(val) => setNuevaEspecialidadId(val)}
+                    onValueChange={setNuevaEspecialidadId}
+                    disabled={especialidadesDisponibles.length === 0}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una especialidad" />
+                    <SelectTrigger className="flex-1 h-10">
+                      <SelectValue placeholder="Seleccionar especialidad" />
                     </SelectTrigger>
                     <SelectContent>
-                      {especialidades.map((esp) => (
+                      {especialidadesDisponibles.map((esp) => (
                         <SelectItem key={esp.id} value={String(esp.id)}>
                           {esp.nombre}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAgregarEspecialidad}
+                    disabled={!nuevaEspecialidadId}
+                    className="h-9"
+                  >
+                    +
+                  </Button>
                 </div>
-                <Button onClick={handleAgregarEspecialidad}>Agregar</Button>
+                {/* Especialidades agregadas */}
+                <div className="space-y-2 mb-1">
+                  <div className="text-sm text-gray-600 mb-1 font-medium">
+                    Especialidades agregadas:
+                  </div>
+                  {especialidadesLocal.map((espId) => {
+                    const esp = especialidades.find(
+                      (e) => String(e.id) === String(espId)
+                    );
+                    return (
+                      <div key={espId} className="flex items-center gap-3 p-0">
+                        <Input
+                          readOnly
+                          className="flex-1 font-semibold text-[15px] border border-gray-300 shadow-sm rounded-lg"
+                          value={esp?.nombre || espId}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleEliminarEspecialidad(espId)}
+                          className="h-10 px-4 text-xs font-semibold rounded-lg"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Contacto */}
-          <div className="grid grid-cols-2 gap-2">
+            )}
+            {/* FIN ESPECIALIDADES UI */}
+            {/* Teléfono */}
             <div>
-              <Label>Teléfono</Label>
+              <Label className="mb-1 flex items-center gap-1">Teléfono</Label>
               <Input
                 value={form.telefono}
                 onChange={(e) => handleChange("telefono", e.target.value)}
               />
             </div>
+            {/* Dirección */}
             <div>
-              <Label>Dirección</Label>
+              <Label className="mb-1 flex items-center gap-1">Dirección</Label>
               <Input
                 value={form.direccion}
                 onChange={(e) => handleChange("direccion", e.target.value)}
               />
             </div>
-          </div>
-
-          {/* Descripción */}
-          <div>
-            <Label>Descripción</Label>
-            <Input
-              value={form.descripcion}
-              onChange={(e) => handleChange("descripcion", e.target.value)}
-            />
-          </div>
-
-          {/* Contrato y tipo médico */}
-          <div className="grid grid-cols-2 gap-2">
+            {/* Descripción */}
+            <div className="md:col-span-2">
+              <Label className="mb-1 flex items-center gap-1">
+                Descripción
+              </Label>
+              <Input
+                value={form.descripcion}
+                onChange={(e) => handleChange("descripcion", e.target.value)}
+              />
+            </div>
+            {/* Tipo Contrato */}
             <div>
-              <Label>Tipo Contrato</Label>
+              <Label className="mb-1 flex items-center gap-1">
+                Tipo Contrato
+              </Label>
               <Select
                 value={form.tipoContrato}
                 onValueChange={(val) => handleChange("tipoContrato", val)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="FIJO">FIJO</SelectItem>
-                  <SelectItem value="TEMPORAL">TEMPORAL</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Tipo Médico</Label>
-              <Select
-                value={form.tipoMedico}
-                onValueChange={(val) => handleChange("tipoMedico", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="GENERAL">GENERAL</SelectItem>
-                  <SelectItem value="ESPECIALISTA">ESPECIALISTA</SelectItem>
+                  <SelectItem value="NOCTURNO">NOCTURNO</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-
           {/* Botones */}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button
-              onClick={handleSubmit}
+              type="submit"
+              className="bg-black hover:bg-gray-800 text-white"
               disabled={actualizarMedico.isPending}
             >
-              Guardar
+              {actualizarMedico.isPending ? "Guardando..." : "Guardar"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
