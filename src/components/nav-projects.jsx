@@ -42,7 +42,7 @@ const ALL_PROJECTS = [
 export function NavProjects() {
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
-  const role = (user?.rol || "").toLowerCase(); 
+  const role = (user?.rol || "").toLowerCase();
 
   const allowed = MODULOS_ROLES[role] || [];
 
@@ -55,7 +55,8 @@ export function NavProjects() {
       <SidebarGroupLabel>Módulos</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => {
-          const isActive = location.pathname === item.url;
+          const isActive = location.pathname.startsWith(item.url);
+
           return (
             <SidebarMenuItem
               key={item.key}
@@ -64,7 +65,7 @@ export function NavProjects() {
               <SidebarMenuButton asChild tooltip={item.name}>
                 <NavLink
                   to={item.url}
-                  className={({ isActive }) =>
+                  className={({ isActive}) =>
                     isActive
                       ? "text-primary font-medium"
                       : "text-muted-foreground"

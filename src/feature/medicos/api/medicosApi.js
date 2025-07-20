@@ -79,3 +79,10 @@ export const deleteRelacionMedicoEspecialidad = async (
   );
   return data;
 };
+
+export const getCitasConfirmadasPorMedico = async (medicoId) => {
+  const { data } = await axiosInstance.get(
+    `/citas/citas-medico-confirmada/${medicoId}`
+  );
+  return data;
+};

@@ -21,9 +21,9 @@ export default function Layout() {
     "/agenda": "Agenda",
     "/atencion": "Atención",
   };
-
   const currentPath = location.pathname;
-  const title = routeTitles[currentPath] || "Módulo";
+  const basePath = "/" + currentPath.split("/")[1]; 
+  const title = routeTitles[basePath] || "Módulo";
 
   return (
     <SidebarProvider>

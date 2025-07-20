@@ -1,3 +1,12 @@
+import { useAuthStore } from "@/store/useAuthStore";
+import InicioMedico from "./medico/components/InicioMedico";
+
 export default function MainPage() {
-  return <h1>Pagina principal</h1>;
+  const rol = useAuthStore((s) => s.user?.rol);
+
+  if (rol === "MEDICO") {
+    return <InicioMedico />;
+  }
+
+  return <h1>Página principal</h1>;
 }

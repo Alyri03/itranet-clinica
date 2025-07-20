@@ -8,15 +8,15 @@ export default function ProtectedRoute() {
 
   if (!user) return <Navigate to="/" replace />;
 
-  const currentPath = location.pathname.split("/")[1];
   const rolKey = user.rol?.toLowerCase();
-
   const modulosPermitidos = MODULOS_ROLES[rolKey] || [];
 
-  const puedeAcceder = modulosPermitidos.includes(currentPath);
+  const puedeAcceder = modulosPermitidos.some((modulo) =>
+    location.pathname.includes(modulo)
+  );
 
   if (!puedeAcceder) {
-    console.warn("🔒 Acceso denegado a:", currentPath);
+    console.warn("🔒 Acceso denegado a:", location.pathname);
     return <Navigate to="/main" replace />;
   }
 

@@ -1,5 +1,8 @@
-import TablaGestionPaciente from "./recepcionista/components/TablaGestionPacientes";
 import { useAuthStore } from "@/store/useAuthStore";
+import TablaGestionPaciente from "./recepcionista/components/TablaGestionPacientes";
+import ListaPacientes from "./medico/components/ListaPacientes";
+import CardPacientes from "./medico/components/CardPacientes";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PacientesPage() {
   const rol = useAuthStore((state) => state.user?.rol);
@@ -8,6 +11,27 @@ export default function PacientesPage() {
     return (
       <div className="p-6 space-y-6">
         <TablaGestionPaciente />
+      </div>
+    );
+  }
+
+  if (rol === "MEDICO") {
+    return (
+      <div className="p-6 space-y-6">
+        <Tabs defaultValue="lista">
+          <TabsList className="mb-4">
+            <TabsTrigger value="lista">Vista de Lista</TabsTrigger>
+            <TabsTrigger value="card">Vista de Tarjetas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="lista">
+            <ListaPacientes />
+          </TabsContent>
+
+          <TabsContent value="card">
+            <CardPacientes />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }

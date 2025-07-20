@@ -32,3 +32,37 @@ export const confirmarCita = async (citaId) => {
     throw err;
   }
 };
+
+export const getPacientesPorMedico = async (medicoId) => {
+  const { data } = await axiosInstance.get(
+    `/citas/medico/${medicoId}/pacientes`
+  );
+  return data;
+};
+
+export const getCitasConfirmadasDelDiaPorMedico = async (medicoId) => {
+  const { data } = await axiosInstance.get(
+    `/citas/citas-medico-confirmada-dia/${medicoId}`
+  );
+  return data;
+};
+
+export async function finalizarCita(citaId) {
+  try {
+    const response = await axiosInstance.put(`/citas/atender/${citaId}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error al finalizar cita:", error.response?.data || error);
+    throw error;
+  }
+}
+
+export async function getCitaById(citaId) {
+  try {
+    const response = await axiosInstance.get(`/citas/${citaId}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error al obtener la cita por ID:", error.response?.data || error);
+    throw error;
+  }
+}
