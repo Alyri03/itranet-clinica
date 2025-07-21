@@ -2,7 +2,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import PerfilPaciente from "./paciente/components/PerfilPaciente";
 import PerfilMedico from "./medico/components/PerfilMedico";
 import PerfilRecepcionista from "./recepcionista/components/PerfilRecepcionista";
-
+import PerfilAdministrador from "./administrador/components/PerfilAdministrador";
 export default function PerfilPage() {
   const rol = useAuthStore((s) => s.user?.rol);
 
@@ -19,6 +19,7 @@ export default function PerfilPage() {
       {rol === "PACIENTE" && <PerfilPaciente />}
       {rol === "MEDICO" && <PerfilMedico />}
       {rol === "RECEPCIONISTA" && <PerfilRecepcionista />}
+      {rol === "ADMINISTRADOR" && <PerfilAdministrador />}
     </div>
   );
 }

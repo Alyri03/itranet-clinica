@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function PacientesPage() {
   const rol = useAuthStore((state) => state.user?.rol);
 
-  if (rol === "RECEPCIONISTA") {
+  if (rol === "RECEPCIONISTA" || rol === "ADMINISTRADOR") {
     return (
       <div className="p-6 space-y-6">
         <TablaGestionPaciente />

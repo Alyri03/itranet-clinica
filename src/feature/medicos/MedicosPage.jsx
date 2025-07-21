@@ -6,10 +6,12 @@ export default function MedicosPage() {
 
   return (
     <div className="p-4">
-      {rol === "RECEPCIONISTA" ? (
+      {rol === "RECEPCIONISTA" || rol === "ADMINISTRADOR" ? (
         <TablaGestionMedicos />
       ) : (
-        <p className="text-gray-500">No tienes permiso para ver esta sección.</p>
+        <p className="text-gray-500">
+          No tienes permiso para ver esta sección.
+        </p>
       )}
     </div>
   );
