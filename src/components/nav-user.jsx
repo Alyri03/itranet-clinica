@@ -32,8 +32,15 @@ import { useNavigate } from "react-router-dom";
 // Importa tu custom hook:
 import { useUserProfile } from "@/feature/perfil/hooks/useUserProfile";
 
+// función para color según rol
+function getAvatarColor(rol = "") {
+  if (rol === "PACIENTE") return "bg-blue-600 text-white";
+  if (rol === "MEDICO") return "bg-purple-700 text-white";
+  if (rol === "RECEPCIONISTA") return "bg-orange-400 text-white";
+  return "bg-gray-700 text-white dark:text-black dark:bg-white";
+}
+
 export function NavUser() {
-  // Usa el hook para obtener el perfil, loading y error
   const { data: profile, isLoading, isError } = useUserProfile();
 
   const [open, setOpen] = useState(false);
@@ -59,19 +66,19 @@ export function NavUser() {
     logout();
   };
 
-  // Loader, error o nulo según el estado de la petición
   if (isLoading)
     return <div className="px-4 py-3 text-sm">Cargando usuario...</div>;
   if (isError || !profile) return null;
 
-  // Procesa los datos del perfil:
+  // Según cómo guardes el rol, usa uno de estos:
+  const rol = profile.perfilTipo || profile.rol || ""; // Usa el campo real de tu objeto perfil
   const fullName = `${profile.nombres ?? ""} ${profile.apellidos ?? ""}`.trim();
   const initials =
     (profile.nombres?.[0] ?? "").toUpperCase() +
     (profile.apellidos?.[0] ?? "").toUpperCase();
   const email = profile?.usuario?.correo ?? profile?.correo ?? "Sin correo";
-
   const avatarUrl = profile.imagenUrl || null;
+  const avatarColor = getAvatarColor(rol);
 
   return (
     <>
@@ -87,7 +94,7 @@ export function NavUser() {
                   {avatarUrl ? (
                     <AvatarImage src={avatarUrl} alt={fullName} />
                   ) : null}
-                  <AvatarFallback className="bg-gray-700 text-white dark:text-black dark:bg-white">
+                  <AvatarFallback className={avatarColor}>
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -110,7 +117,7 @@ export function NavUser() {
                     {avatarUrl ? (
                       <AvatarImage src={avatarUrl} alt={fullName} />
                     ) : null}
-                    <AvatarFallback className="bg-gray-700 text-white dark:text-black dark:bg-white">
+                    <AvatarFallback className={avatarColor}>
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -173,7 +180,7 @@ export function NavUser() {
               {avatarUrl ? (
                 <AvatarImage src={avatarUrl} alt={fullName} />
               ) : null}
-              <AvatarFallback className="bg-gray-700 text-white dark:text-black dark:bg-white">
+              <AvatarFallback className={avatarColor}>
                 {initials}
               </AvatarFallback>
             </Avatar>
