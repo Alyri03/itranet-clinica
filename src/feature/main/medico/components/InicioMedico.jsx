@@ -2,20 +2,39 @@ import ProximasCitas from "./ProximasCitas";
 import { useUserProfile } from "../../../perfil/hooks/useUserProfile";
 import { Users, Calendar } from "lucide-react";
 import doctora from "@/assets/doctora.png";
+import { usePacientesDeUnMedico } from "../../../citas/hooks/usePacientesDeUnMedico";
+import { useCitasConfirmadasPorMedico } from "../../../medicos/hooks/useCitasConfirmadasPorMedico";
+import { useAuthStore } from "../../../../store/useAuthStore";
 
 export default function InicioMedico() {
-  const { data: perfil, isLoading } = useUserProfile();
+  const { data: perfil, isLoading: isPerfilLoading } = useUserProfile();
+  const medicoId = useAuthStore((state) => state.medicoId) ?? perfil?.id;
 
-  // Datos de ejemplo
-  const totalPacientes = 9;
-  const totalCitas = 1;
+  console.log("perfil:", perfil);
+  console.log("medicoId:", medicoId);
 
-  if (isLoading) return <p>Cargando perfil...</p>;
+  const { data: pacientes, isLoading: isPacientesLoading } =
+    usePacientesDeUnMedico(medicoId, { enabled: !!medicoId });
+  const { data: citas, isLoading: isCitasLoading } =
+    useCitasConfirmadasPorMedico(medicoId, { enabled: !!medicoId });
+
+  // Debug arrays recibidos
+  console.log("Pacientes recibidos:", pacientes);
+  console.log("Citas recibidas:", citas);
+
+  if (isPerfilLoading) return <p>Cargando perfil...</p>;
   if (!perfil) return <p>No se pudo cargar el perfil.</p>;
+
+  const totalPacientes = pacientes?.length ?? 0;
+  const totalCitas = citas?.length ?? 0;
+
+  // Debug conteo final
+  console.log("totalPacientes:", totalPacientes);
+  console.log("totalCitas:", totalCitas);
 
   return (
     <div className="p-6">
-      {/* CARD GRANDE ENCABEZADO TAMAÑO INTERMEDIO */}
+      {/* CARD GRANDE ENCABEZADO */}
       <div className="bg-gradient-to-tr from-white via-blue-50 to-white rounded-2xl shadow border px-10 py-6 mb-8 flex items-center justify-between gap-4 min-h-[110px] max-h-[150px]">
         <div className="flex-1 min-w-0">
           <span className="text-xs text-blue-700 bg-blue-100 px-3 py-1 rounded-full font-semibold">
@@ -28,7 +47,6 @@ export default function InicioMedico() {
             Gestiona tus pacientes, citas y expedientes médicos fácilmente.
           </p>
         </div>
-        {/* Imagen, más pequeña y sutil */}
         <div className="relative hidden md:block w-24 h-24 ml-6 shrink-0">
           <div className="absolute inset-0 rounded-full bg-blue-100 z-0" />
           <img
@@ -44,7 +62,6 @@ export default function InicioMedico() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         {/* PACIENTES */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl shadow-lg border-0 flex flex-row items-stretch min-h-[150px] overflow-hidden">
-          {/* Izquierda */}
           <div className="flex flex-col justify-center px-8 py-6 w-full md:w-2/3 z-10">
             <div className="text-xl font-semibold mb-1">Pacientes</div>
             <div className="text-white/80 text-sm mb-3 max-w-md">
@@ -58,13 +75,13 @@ export default function InicioMedico() {
               Ver pacientes
             </button>
           </div>
-          {/* Separador */}
           <div className="hidden md:flex w-px bg-white/30 my-6 mx-2" />
-          {/* Derecha */}
           <div className="flex flex-col items-center justify-center px-6 py-6 w-full md:w-[180px]">
             <Users className="h-8 w-8 text-white mb-2" />
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{totalPacientes}</span>
+              <span className="text-3xl font-bold">
+                {isPacientesLoading ? "..." : totalPacientes}
+              </span>
             </div>
             <span className="text-white/80 text-base font-semibold mt-1">
               Total Pacientes
@@ -91,7 +108,9 @@ export default function InicioMedico() {
           <div className="flex flex-col items-center justify-center px-6 py-6 w-full md:w-[180px]">
             <Calendar className="h-8 w-8 text-white mb-2" />
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">{totalCitas}</span>
+              <span className="text-3xl font-bold">
+                {isCitasLoading ? "..." : totalCitas}
+              </span>
             </div>
             <span className="text-white/80 text-base font-semibold mt-1">
               Citas
