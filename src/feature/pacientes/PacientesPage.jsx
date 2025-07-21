@@ -14,15 +14,16 @@ export default function PacientesPage() {
       </div>
     );
   }
-
   if (rol === "MEDICO") {
     return (
       <div className="p-6 space-y-6">
         <Tabs defaultValue="lista">
-          <TabsList className="mb-4">
-            <TabsTrigger value="lista">Vista de Lista</TabsTrigger>
-            <TabsTrigger value="card">Vista de Tarjetas</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-4">
+            <TabsList className="w-max">
+              <TabsTrigger value="lista">Vista de Lista</TabsTrigger>
+              <TabsTrigger value="card">Vista de Tarjetas</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="lista">
             <ListaPacientes />

@@ -17,20 +17,20 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
   const [form, setForm] = useState({
     telefono: "",
     direccion: "",
-    imagenUrl: "",
+    antecedentes: "",
+    contactoDeEmergenciaNombre: "",
+    contactoDeEmergenciaTelefono: "",
   });
 
   const [error, setError] = useState("");
 
   const { mutate, isLoading } = useActualizarPaciente({
     onSuccess: (data) => {
-      console.log("✅ Éxito al actualizar:", data);
       toast.success("Paciente actualizado correctamente");
       onClose();
       setError("");
     },
     onError: (err) => {
-      console.error("❌ Error al actualizar:", err);
       const msg = err?.message || "Error al actualizar paciente";
       toast.error(msg);
       setError(msg);
@@ -42,7 +42,9 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
       setForm({
         telefono: paciente.telefono || "",
         direccion: paciente.direccion || "",
-        imagenUrl: paciente.imagenUrl || "",
+        antecedentes: paciente.antecedentes || "",
+        contactoDeEmergenciaNombre: paciente.contactoDeEmergenciaNombre || "",
+        contactoDeEmergenciaTelefono: paciente.contactoDeEmergenciaTelefono || "",
       });
     }
   }, [paciente, open]);
@@ -58,21 +60,19 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
     e.preventDefault();
     setError("");
 
-    if (!paciente) {
-      console.warn("⚠️ No hay paciente seleccionado");
-      return;
-    }
+    if (!paciente) return;
 
     const payload = {
       id: paciente.id,
       datosPaciente: {
         telefono: form.telefono.trim(),
         direccion: form.direccion.trim(),
-        imagenUrl: form.imagenUrl.trim(),
+        antecedentes: form.antecedentes.trim(),
+        contactoDeEmergenciaNombre: form.contactoDeEmergenciaNombre.trim(),
+        contactoDeEmergenciaTelefono: form.contactoDeEmergenciaTelefono.trim(),
       },
     };
 
-    console.log("📦 Payload a enviar:", payload);
     mutate(payload);
   };
 
@@ -102,12 +102,28 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
             />
           </div>
           <Input
-            name="imagenUrl"
-            value={form.imagenUrl}
+            name="antecedentes"
+            value={form.antecedentes}
             onChange={handleChange}
-            placeholder="URL de Imagen"
+            placeholder="Antecedentes"
             className={inputClass}
           />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              name="contactoDeEmergenciaNombre"
+              value={form.contactoDeEmergenciaNombre}
+              onChange={handleChange}
+              placeholder="Nombre de Contacto de Emergencia"
+              className={inputClass}
+            />
+            <Input
+              name="contactoDeEmergenciaTelefono"
+              value={form.contactoDeEmergenciaTelefono}
+              onChange={handleChange}
+              placeholder="Teléfono de Contacto de Emergencia"
+              className={inputClass}
+            />
+          </div>
           {error && <p className="text-red-600 text-sm text-center">{error}</p>}
           <DialogFooter className="flex justify-end gap-2 pt-4">
             <Button variant="outline" type="button" onClick={onClose}>

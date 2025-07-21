@@ -45,3 +45,25 @@ export const getTiposDocumento = async () => {
   const { data } = await axiosInstance.get("/tipos-documentos");
   return data;
 };
+
+export const getPacientePorId = async (id) => {
+  const { data } = await axiosInstance.get(`/pacientes/id/${id}`);
+  return data;
+};
+
+export const getAlergiasPorPacienteId = async (pacienteId) => {
+  const { data } = await axiosInstance.get(
+    `/paciente-alergia/paciente/${pacienteId}`
+  );
+  return data;
+};
+
+export const getResultadosPorPacienteId = async (pacienteId) => {
+  const { data } = await axiosInstance.get(`/resultados/por-paciente/${pacienteId}`);
+  return data;
+};
+
+export const getHistorialClinicoPorPacienteId = async (pacienteId) => {
+  const { data } = await axiosInstance.get(`/historial-clinico/paciente/${pacienteId}`);
+  return data;
+};

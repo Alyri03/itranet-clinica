@@ -50,9 +50,20 @@ export default function AtencionPage() {
 
   return (
     <div className="p-4 space-y-6">
-      <InfoPaciente pacienteId={pacienteId} citaId={citaId} />
-      <HistorialPaciente pacienteId={pacienteId} />
-      <RegistroAtencion cita={cita} />
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        style={{ minHeight: "400px" }}
+      >
+        <div>
+          <InfoPaciente pacienteId={pacienteId} />
+        </div>
+        <div>
+          <HistorialPaciente pacienteId={pacienteId} />
+        </div>
+      </div>
+      <div>
+        <RegistroAtencion cita={cita} />
+      </div>
     </div>
   );
 }
