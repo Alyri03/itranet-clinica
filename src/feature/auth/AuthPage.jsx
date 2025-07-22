@@ -10,6 +10,8 @@ import {
   getProfileAdministradorByUsuarioId,
 } from "../perfil/api/perfilApi";
 
+import RegisterPage from "./components/RegisterPage";
+
 export default function AuthPage() {
   const loginStore = useAuthStore((s) => s.login);
   const navigate = useNavigate();
@@ -129,12 +131,5 @@ export default function AuthPage() {
     mutate({ correo: email, password });
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-md p-8 rounded-lg shadow-lg bg-white dark:bg-zinc-900">
-        <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
-        <LoginForm onSubmit={handleLogin} loading={isLoading} />
-      </div>
-    </div>
-  );
+  return <LoginForm onSubmit={handleLogin} loading={isLoading} />;
 }

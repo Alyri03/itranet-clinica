@@ -2,51 +2,39 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { useTiposDocumento } from "../../pacientes/hooks/useTiposDocumento";
 import { Eye, EyeOff } from "lucide-react";
-import { useVerificarDocumento } from "../hooks/useVerificarDocumento";
 import { useEnviarCodigo } from "../hooks/useEnviarCodigo";
 import { useVerificarCodigo } from "../hooks/useVerificarCodigo";
 import { useCompletarRegistro } from "../hooks/useCompletarRegistro";
 import { toast } from "sonner";
 
-export default function RegistroPorRecepcion() {
+export default function RegistroPorRecepcion({ initialData }) {
   const navigate = useNavigate();
-  const { data: tiposDocumento = [], isLoading } = useTiposDocumento();
-  const [step, setStep] = useState("verify-document");
-  const [error, setError] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [showPassword, setShowPassword] = useState(false);
+
+  // Multi fallback para los nombres posibles de campos
+  const documentNumber =
+    initialData?.numeroDocumento ||
+    initialData?.documentNumber ||
+    initialData?.documento ||
+    initialData?.numero_documento ||
+    "";
+
+  const documentType =
+    initialData?.tipoDocumentoNombre ||
+    initialData?.documentType ||
+    initialData?.tipo_documento_nombre ||
+    "DNI";
 
   const [formData, setFormData] = useState({
-    documentType: "DNI",
-    documentTypeId: 1,
-    documentNumber: "",
+    documentType,
+    documentNumber,
     email: "",
     password: "",
   });
 
-  const verificarDocumento = useVerificarDocumento({
-    onSuccess: (data) => {
-      if (data.exists) {
-        setStep("email-input");
-        toast.success("Documento verificado exitosamente");
-      } else {
-        setError("Documento no encontrado. Usa el formulario completo.");
-        toast.error("Documento no encontrado");
-      }
-    },
-    onError: () => {
-      setError("Error al verificar documento.");
-      toast.error("Error al verificar documento");
-    },
-  });
+  const [step, setStep] = useState("email-input");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const enviarCodigo = useEnviarCodigo({
     onSuccess: () => {
@@ -54,7 +42,6 @@ export default function RegistroPorRecepcion() {
       toast.success("Código enviado al correo");
     },
     onError: () => {
-      setError("Error al enviar el código.");
       toast.error("Error al enviar el código");
     },
   });
@@ -65,7 +52,6 @@ export default function RegistroPorRecepcion() {
       toast.success("Código verificado correctamente");
     },
     onError: () => {
-      setError("Código incorrecto o expirado.");
       toast.error("Código inválido o expirado");
     },
   });
@@ -76,7 +62,6 @@ export default function RegistroPorRecepcion() {
       navigate("/login");
     },
     onError: () => {
-      setError("Error al completar el registro.");
       toast.error("Error al completar el registro");
     },
   });
@@ -99,97 +84,58 @@ export default function RegistroPorRecepcion() {
         <Link to="/login" className="text-sm text-gray-500 underline">
           Volver al login
         </Link>
-        <h1 className="text-3xl font-bold text-center">
+        <h1 className="text-3xl font-bold text-center mb-3">
           Registro de paciente (datos iniciales)
         </h1>
-        {error && <p className="text-red-600 text-center text-sm">{error}</p>}
 
-        {step === "verify-document" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              verificarDocumento.mutate({
-                tipoDocumento: {
-                  id: formData.documentTypeId,
-                  nombre: formData.documentType,
-                },
-                documento: formData.documentNumber,
-              });
-            }}
-            className="space-y-4"
-          >
-            <div className="flex gap-4">
-              <Select
-                value={formData.documentType}
-                onValueChange={(val) => {
-                  const selected = tiposDocumento.find((d) => d.nombre === val);
-                  setFormData((prev) => ({
-                    ...prev,
-                    documentType: val,
-                    documentTypeId: selected?.id || 1,
-                  }));
-                }}
-              >
-                <SelectTrigger className="w-1/3">
-                  {formData.documentType}
-                </SelectTrigger>
-                <SelectContent>
-                  {isLoading ? (
-                    <SelectItem disabled>Cargando...</SelectItem>
-                  ) : (
-                    tiposDocumento.map((doc) => (
-                      <SelectItem key={doc.id} value={doc.nombre}>
-                        {doc.nombre}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <Input
-                type="text"
-                placeholder="N. Documento"
-                value={formData.documentNumber}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    documentNumber: e.target.value,
-                  }))
-                }
-                required
-              />
-            </div>
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={verificarDocumento.isPending}
-            >
-              {verificarDocumento.isPending
-                ? "Verificando..."
-                : "Verificar documento"}
-            </Button>
-          </form>
-        )}
-
+        {/* Paso 1: Email, mostrando documento y tipo bloqueados */}
         {step === "email-input" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
               enviarCodigo.mutate({
-                documento: formData.documentNumber,
+                documento: documentNumber,
                 email: formData.email,
               });
             }}
             className="space-y-4"
           >
-            <Input
-              type="email"
-              placeholder="Correo electrónico"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, email: e.target.value }))
-              }
-              required
-            />
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo de documento
+                </label>
+                <Input
+                  value={documentType}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  N° Documento
+                </label>
+                <Input
+                  value={documentNumber}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Correo electrónico
+              </label>
+              <Input
+                type="email"
+                placeholder="Correo electrónico"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, email: e.target.value }))
+                }
+                required
+              />
+            </div>
             <Button
               type="submit"
               className="w-full"
@@ -200,6 +146,7 @@ export default function RegistroPorRecepcion() {
           </form>
         )}
 
+        {/* Paso 2: Código */}
         {step === "code-input" && (
           <form
             onSubmit={(e) => {
@@ -235,25 +182,66 @@ export default function RegistroPorRecepcion() {
           </form>
         )}
 
+        {/* Paso 3: Contraseña + Resumen */}
         {step === "password" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
               completarRegistro.mutate({
-                documento: formData.documentNumber,
+                documento: documentNumber,
                 email: formData.email,
                 password: formData.password,
               });
             }}
             className="space-y-4"
           >
+            {/* Mostrar el resumen de datos arriba */}
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo de documento
+                </label>
+                <Input
+                  value={documentType}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  N° Documento
+                </label>
+                <Input
+                  value={documentNumber}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Correo electrónico
+              </label>
+              <Input
+                value={formData.email}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            {/* Contraseña */}
             <div className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Contraseña
+              </label>
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
                 value={formData.password}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, password: e.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    password: e.target.value,
+                  }))
                 }
                 required
                 className="pr-10"

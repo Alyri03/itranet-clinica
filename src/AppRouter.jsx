@@ -12,8 +12,8 @@ import RecepcionistasPage from "./feature/recepcionistas/RecepcionistasPage";
 import AgendaPage from "./feature/agenda/AgendaPage";
 import AtencionPage from "./feature/atencion/AtencionPage";
 import ProtectedRoute from "./router/ProtectedRoute";
-import RegistroPorRecepcion from "./feature/auth/components/RegistroPorRecepcion";
-import RegistroCompleto from "./feature/auth/components/RegistroCompleto";
+import RegisterPage from "./feature/auth/components/RegisterPage";
+// No importes RegistroPorRecepcion ni RegistroCompleto aquí
 
 export default function AppRouter() {
   const user = useAuthStore((s) => s.user);
@@ -24,8 +24,7 @@ export default function AppRouter() {
       <Routes>
         {/* Rutas públicas */}
         <Route path="/login" element={<AuthPage />} />
-        <Route path="/registro-recepcion" element={<RegistroPorRecepcion />} />
-        <Route path="/registro-completo" element={<RegistroCompleto />} />
+        <Route path="/registro" element={<RegisterPage />} />
 
         {/* Rutas protegidas */}
         {user && (
@@ -39,11 +38,11 @@ export default function AppRouter() {
               <Route path="perfil" element={<PerfilPage />} />
               <Route path="recepcionistas" element={<RecepcionistasPage />} />
               <Route path="agenda" element={<AgendaPage />} />
-
-              {/* Soporta ruta sin y con parámetros */}
               <Route path="atencion" element={<AtencionPage />} />
-              <Route path="atencion/:pacienteId/:citaId" element={<AtencionPage />} />
-
+              <Route
+                path="atencion/:pacienteId/:citaId"
+                element={<AtencionPage />}
+              />
               <Route path="*" element={<Navigate to="/main" />} />
             </Route>
           </Route>
