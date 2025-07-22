@@ -5,32 +5,29 @@ import doctora from "@/assets/doctora.png";
 import { usePacientesDeUnMedico } from "../../../citas/hooks/usePacientesDeUnMedico";
 import { useCitasConfirmadasPorMedico } from "../../../medicos/hooks/useCitasConfirmadasPorMedico";
 import { useAuthStore } from "../../../../store/useAuthStore";
+import Spinner from "../../../../components/Spinner";
 
 export default function InicioMedico() {
   const { data: perfil, isLoading: isPerfilLoading } = useUserProfile();
   const medicoId = useAuthStore((state) => state.medicoId) ?? perfil?.id;
-
-  console.log("perfil:", perfil);
-  console.log("medicoId:", medicoId);
 
   const { data: pacientes, isLoading: isPacientesLoading } =
     usePacientesDeUnMedico(medicoId, { enabled: !!medicoId });
   const { data: citas, isLoading: isCitasLoading } =
     useCitasConfirmadasPorMedico(medicoId, { enabled: !!medicoId });
 
-  // Debug arrays recibidos
-  console.log("Pacientes recibidos:", pacientes);
-  console.log("Citas recibidas:", citas);
+  // Mostrar spinner si cualquiera está cargando
+  if (isPerfilLoading || isPacientesLoading || isCitasLoading)
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner />
+      </div>
+    );
 
-  if (isPerfilLoading) return <p>Cargando perfil...</p>;
   if (!perfil) return <p>No se pudo cargar el perfil.</p>;
 
   const totalPacientes = pacientes?.length ?? 0;
   const totalCitas = citas?.length ?? 0;
-
-  // Debug conteo final
-  console.log("totalPacientes:", totalPacientes);
-  console.log("totalCitas:", totalCitas);
 
   return (
     <div className="p-6">
@@ -79,9 +76,7 @@ export default function InicioMedico() {
           <div className="flex flex-col items-center justify-center px-6 py-6 w-full md:w-[180px]">
             <Users className="h-8 w-8 text-white mb-2" />
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">
-                {isPacientesLoading ? "..." : totalPacientes}
-              </span>
+              <span className="text-3xl font-bold">{totalPacientes}</span>
             </div>
             <span className="text-white/80 text-base font-semibold mt-1">
               Total Pacientes
@@ -108,9 +103,7 @@ export default function InicioMedico() {
           <div className="flex flex-col items-center justify-center px-6 py-6 w-full md:w-[180px]">
             <Calendar className="h-8 w-8 text-white mb-2" />
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold">
-                {isCitasLoading ? "..." : totalCitas}
-              </span>
+              <span className="text-3xl font-bold">{totalCitas}</span>
             </div>
             <span className="text-white/80 text-base font-semibold mt-1">
               Citas

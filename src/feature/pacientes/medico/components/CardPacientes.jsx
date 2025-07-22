@@ -10,7 +10,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Phone, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 
 export default function CardPacientes() {
   const medicoId = useAuthStore((s) => s.medicoId);
@@ -57,16 +56,7 @@ export default function CardPacientes() {
                 <IdCard className="text-blue-500 h-4 w-4" />
                 <span>{p.numeroIdentificacion}</span>
               </div>
-              {/* Botón de ver detalle */}
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="absolute top-4 right-4"
-                title={`Ver detalle de ${p.nombres} ${p.apellidos}`}
-                onClick={() => alert(`Ver detalle de ${p.nombres} ${p.apellidos}`)} // Puedes cambiar esta función por la navegación real
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
+              {/* Botón de ver detalle eliminado */}
             </CardContent>
           </Card>
         ))}

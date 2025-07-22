@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CircleCheckBig } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import DialogAtender from "./DialogAtender";
 
@@ -33,11 +33,7 @@ function formatTime(hora) {
 
 export default function TablaCitasHoyDia() {
   const medicoId = useAuthStore((s) => s.medicoId);
-  const {
-    data: citas = [],
-    isLoading,
-    isError,
-  } = useCitasDelDiaPorMedico(medicoId);
+  const { data: citas = [], isLoading, isError } = useCitasDelDiaPorMedico(medicoId);
   const { data: pacientes = [] } = usePacientes();
   const { data: servicios = [] } = useServicios();
 
@@ -82,7 +78,6 @@ export default function TablaCitasHoyDia() {
           {citas.map((cita) => {
             const paciente = pacientes.find((p) => p.id === cita.pacienteId);
             const servicio = servicios.find((s) => s.id === cita.servicioId);
-
             return (
               <TableRow key={cita.citaId}>
                 <TableCell>{formatDate(cita.fecha)}</TableCell>
@@ -95,7 +90,6 @@ export default function TablaCitasHoyDia() {
                         : "NA"}
                     </AvatarFallback>
                   </Avatar>
-
                   <span>
                     {paciente
                       ? `${paciente.nombres} ${paciente.apellidos}`
@@ -123,7 +117,6 @@ export default function TablaCitasHoyDia() {
           })}
         </TableBody>
       </Table>
-
       <DialogAtender
         open={openDialog}
         onOpenChange={setOpenDialog}

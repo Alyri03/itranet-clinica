@@ -10,15 +10,21 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAtencionStore } from "@/store/atencionStore";
 
 export default function DialogAtender({ open, onOpenChange, paciente, cita }) {
   const navigate = useNavigate();
+  const iniciarAtencion = useAtencionStore((s) => s.iniciarAtencion);
 
   if (!cita || !paciente) return null;
 
   const handleConfirm = () => {
+    iniciarAtencion();
+    console.log(
+      "%c[DialogAtender] -> iniciarAtencion (debería estar bloqueado ahora)",
+      "color: green;"
+    );
     onOpenChange(false);
-    // Navegar a la página de atención:
     navigate(`/atencion/${cita.pacienteId}/${cita.citaId}`);
   };
 
@@ -28,8 +34,7 @@ export default function DialogAtender({ open, onOpenChange, paciente, cita }) {
         <DialogHeader>
           <DialogTitle>Confirmar Atención</DialogTitle>
           <DialogDescription>
-            ¿Estás seguro de que quieres atender a {paciente.nombres}{" "}
-            {paciente.apellidos}?
+            ¿Estás seguro de que quieres atender a {paciente.nombres} {paciente.apellidos}?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

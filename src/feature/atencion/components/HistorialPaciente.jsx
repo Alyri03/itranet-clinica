@@ -1,16 +1,28 @@
-"use client";
 import * as React from "react";
 import useResultadosPorPacienteId from "../../pacientes/hooks/useResultadosPorPacienteId";
 import useHistorialClinicoPorPacienteId from "../../pacientes/hooks/useHistorialClinicoPorPacienteId";
 import { Button } from "@/components/ui/button";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Eye, Calendar, History } from "lucide-react";
 
@@ -18,7 +30,8 @@ function parseResultados(data) {
   if (!data) return [];
   if (Array.isArray(data)) {
     return data.filter(
-      (r) => r && typeof r.diagnostico === "string" && r.diagnostico.trim() !== ""
+      (r) =>
+        r && typeof r.diagnostico === "string" && r.diagnostico.trim() !== ""
     );
   }
   if (
@@ -52,35 +65,51 @@ export default function HistorialPaciente({ pacienteId }) {
     isError: errorHistorial,
   } = useHistorialClinicoPorPacienteId(pacienteId);
 
-  // Parsear resultados (diagnósticos)
   const resultados = parseResultados(resultadosRaw);
 
-  // Mapear fechas por historialId
   const historialFechaMap = React.useMemo(() => {
-    // Si viene como array, armar el map normal
     if (Array.isArray(historialRaw)) {
       return Object.fromEntries(
-        historialRaw.filter(x => x && x.id && x.fecha).map(x => [x.id, x.fecha])
+        historialRaw
+          .filter((x) => x && x.id && x.fecha)
+          .map((x) => [x.id, x.fecha])
       );
     }
-    // Si viene como objeto, usar su id y fecha
-    if (historialRaw && typeof historialRaw === "object" && historialRaw.id && historialRaw.fecha) {
+    if (
+      historialRaw &&
+      typeof historialRaw === "object" &&
+      historialRaw.id &&
+      historialRaw.fecha
+    ) {
       return { [historialRaw.id]: historialRaw.fecha };
     }
     return {};
   }, [historialRaw]);
 
-  // Si solo hay una fecha y no hay match por id, igual mostrarla
   const fallbackFecha = Object.values(historialFechaMap)[0];
 
   const [resultadoSeleccionado, setResultadoSeleccionado] = React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
+  // PAGINACION
+  const [paginaActual, setPaginaActual] = React.useState(1);
+  const resultadosPorPagina = 5;
+
+  const totalPaginas = Math.ceil(resultados.length / resultadosPorPagina);
+
+  // Obtener resultados solo de la página actual
+  const resultadosPagina = resultados.slice(
+    (paginaActual - 1) * resultadosPorPagina,
+    paginaActual * resultadosPorPagina
+  );
+
   if (loadingHistorial || loadingResultados)
     return <p className="text-sm">Cargando historial y resultados...</p>;
 
   if (errorHistorial)
-    return <p className="text-sm text-red-600">Error al cargar historial clínico.</p>;
+    return (
+      <p className="text-sm text-red-600">Error al cargar historial clínico.</p>
+    );
 
   if (errorResultados)
     return <p className="text-sm text-red-600">Error al cargar resultados.</p>;
@@ -89,8 +118,8 @@ export default function HistorialPaciente({ pacienteId }) {
     return <p className="text-sm">No hay resultados para mostrar.</p>;
 
   return (
-    <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg p-4">
+    <Card className="w-full h-full flex flex-col border-0 shadow-lg bg-white/90 rounded-lg">
+      <CardHeader className="bg-blue-600 text-white rounded-t-lg p-4">
         <CardTitle className="text-xl font-bold flex items-center gap-2">
           <History className="h-5 w-5" />
           Historial Clínico (Todos los resultados)
@@ -99,7 +128,7 @@ export default function HistorialPaciente({ pacienteId }) {
           Listado de diagnósticos y tratamientos anteriores.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="px-8 py-8 flex-1 flex flex-col">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -115,8 +144,7 @@ export default function HistorialPaciente({ pacienteId }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {resultados.map((resultado) => {
-              // Buscar la fecha usando el historial clínico relacionado o fallback
+            {resultadosPagina.map((resultado) => {
               const fecha =
                 historialFechaMap[resultado.historialClinicoId] ||
                 fallbackFecha ||
@@ -129,7 +157,9 @@ export default function HistorialPaciente({ pacienteId }) {
                 >
                   <TableCell className="font-medium flex items-center gap-2 text-xs text-gray-800">
                     <Calendar className="h-4 w-4 text-gray-500" />
-                    {fecha ? formatearFecha(fecha) : (
+                    {fecha ? (
+                      formatearFecha(fecha)
+                    ) : (
                       <span className="text-gray-400 italic">Sin fecha</span>
                     )}
                   </TableCell>
@@ -155,6 +185,25 @@ export default function HistorialPaciente({ pacienteId }) {
             })}
           </TableBody>
         </Table>
+
+        {/* PAGINACIÓN */}
+        <div className="mt-4 flex justify-center items-center gap-4">
+          <Button
+            disabled={paginaActual === 1}
+            onClick={() => setPaginaActual((p) => p - 1)}
+          >
+            Anterior
+          </Button>
+          <span>
+            Página {paginaActual} de {totalPaginas}
+          </span>
+          <Button
+            disabled={paginaActual === totalPaginas}
+            onClick={() => setPaginaActual((p) => p + 1)}
+          >
+            Siguiente
+          </Button>
+        </div>
       </CardContent>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -168,8 +217,7 @@ export default function HistorialPaciente({ pacienteId }) {
           {resultadoSeleccionado && (
             <div className="space-y-2 text-sm text-gray-700">
               <div>
-                <strong>Diagnóstico:</strong>{" "}
-                {resultadoSeleccionado.diagnostico}
+                <strong>Diagnóstico:</strong> {resultadoSeleccionado.diagnostico}
               </div>
               <div>
                 <strong>Tratamiento:</strong>{" "}

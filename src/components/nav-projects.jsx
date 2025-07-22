@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { MODULOS_ROLES } from "@/utils/ModulosRoles";
-
+import { useAtencionStore } from "@/store/atencionStore";
 import {
   CalendarIcon,
   UsersIcon,
@@ -43,8 +43,14 @@ export function NavProjects() {
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const role = (user?.rol || "").toLowerCase();
-
   const allowed = MODULOS_ROLES[role] || [];
+  const enAtencion = useAtencionStore((s) => s.enAtencion);
+
+  console.log(
+    "%c[NavProjects] enAtencion:",
+    "color: purple; font-weight:bold",
+    enAtencion
+  );
 
   const projects = allowed
     .map((key) => ALL_PROJECTS.find((item) => item.key === key))
@@ -56,17 +62,24 @@ export function NavProjects() {
       <SidebarMenu>
         {projects.map((item) => {
           const isActive = location.pathname.startsWith(item.url);
+          const isAtencionModule = item.key === "atencion";
+          const isBlocked = enAtencion && !isAtencionModule;
 
           return (
             <SidebarMenuItem
               key={item.key}
-              className={isActive ? "bg-muted" : ""}
+              className={`${isActive ? "bg-muted " : ""} ${
+                isBlocked ? "pointer-events-none opacity-60" : ""
+              }`}
             >
               <SidebarMenuButton asChild tooltip={item.name}>
                 <NavLink
                   to={item.url}
-                  className={({ isActive}) =>
-                    isActive
+                  tabIndex={isBlocked ? -1 : 0}
+                  className={({ isActive }) =>
+                    isBlocked
+                      ? "text-muted-foreground opacity-60"
+                      : isActive
                       ? "text-primary font-medium"
                       : "text-muted-foreground"
                   }

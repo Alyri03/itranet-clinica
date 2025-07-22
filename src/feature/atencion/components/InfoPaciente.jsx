@@ -53,8 +53,8 @@ export default function InfoPaciente({ pacienteId }) {
   if (!paciente) return <p>No se encontró información para este paciente.</p>;
 
   return (
-    <Card className="max-w-md mx-auto border-0 shadow-lg bg-white/90 rounded-lg">
-      <CardHeader className=" bg-blue-600 text-white rounded-t-lg px-6 py-4">
+    <Card className="w-full h-full flex flex-col border-0 shadow-lg bg-white/90 rounded-lg">
+      <CardHeader className="bg-blue-600 text-white rounded-t-lg px-6 py-4">
         <CardTitle className="text-xl font-semibold flex items-center gap-3">
           <User className="h-5 w-5" />
           {paciente.nombres} {paciente.apellidos}
@@ -63,99 +63,100 @@ export default function InfoPaciente({ pacienteId }) {
           Información detallada del paciente
         </p>
       </CardHeader>
-      <CardContent className="px-6 py-6 space-y-6">
-        {/* Datos Personales */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-blue-600" />
-            Datos Personales
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700 text-sm">
-            <div>
-              <p className="font-medium">Documento:</p>
-              <p>
-                {paciente.tipoDocumento?.nombre} -{" "}
-                {paciente.numeroIdentificacion}
-              </p>
+      <CardContent className="px-12 py-10 flex-1 flex flex-col"> 
+        {/* Fila 1: Datos personales & Información de contacto */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Datos Personales */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+              <FileText className="h-4 w-4 text-blue-600" />
+              Datos Personales
+            </h3>
+            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-gray-700 text-sm">
+              <div>
+                <span className="font-medium">Documento:</span><br />
+                <span>
+                  {paciente.tipoDocumento?.nombre} - {paciente.numeroIdentificacion}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">Fecha de nacimiento:</span><br />
+                <span>{new Date(paciente.fechaNacimiento).toLocaleDateString()}</span>
+              </div>
+              <div>
+                <span className="font-medium">Sexo:</span><br />
+                <span>{paciente.sexo}</span>
+              </div>
+              <div>
+                <span className="font-medium">Tipo de sangre:</span><br />
+                <span>{mapTipoSangre[paciente.tipoSangre] || paciente.tipoSangre}</span>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Fecha de nacimiento:</p>
-              <p>{new Date(paciente.fechaNacimiento).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="font-medium">Sexo:</p>
-              <p>{paciente.sexo}</p>
-            </div>
-            <div>
-              <p className="font-medium">Tipo de sangre:</p>
-              <p>{mapTipoSangre[paciente.tipoSangre] || paciente.tipoSangre}</p>
+          </div>
+
+          {/* Información de Contacto */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+              <Phone className="h-4 w-4 text-green-600" />
+              Información de Contacto
+            </h3>
+            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-gray-700 text-sm">
+              <div>
+                <span className="font-medium">Teléfono:</span><br />
+                <span>{paciente.telefono}</span>
+              </div>
+              <div>
+                <span className="font-medium">Dirección:</span><br />
+                <span>{paciente.direccion}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <Separator className="bg-gray-200" />
+        <Separator className="bg-gray-200 my-8" />
 
-        {/* Información de Contacto */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Phone className="h-4 w-4 text-green-600" />
-            Información de Contacto
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-700 text-sm">
-            <div>
-              <p className="font-medium">Teléfono:</p>
-              <p>{paciente.telefono}</p>
-            </div>
-            <div>
-              <p className="font-medium">Dirección:</p>
-              <p>{paciente.direccion}</p>
-            </div>
-          </div>
-        </div>
-
-        <Separator className="bg-gray-200" />
-
-        {/* Contacto de Emergencia */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Contact className="h-4 w-4 text-purple-600" />
-            Contacto de Emergencia
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-gray-700 text-sm">
-            <div>
-              <p className="font-medium">Nombre:</p>
-              <p>{paciente.contactoDeEmergenciaNombre || "No disponible"}</p>
-            </div>
-            <div>
-              <p className="font-medium">Teléfono:</p>
-              <p>{paciente.contactoDeEmergenciaTelefono || "No disponible"}</p>
+        {/* Fila 2: Contacto de emergencia & Alergias */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Contacto de Emergencia */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+              <Contact className="h-4 w-4 text-purple-600" />
+              Contacto de Emergencia
+            </h3>
+            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-gray-700 text-sm">
+              <div>
+                <span className="font-medium">Nombre:</span><br />
+                <span>{paciente.contactoDeEmergenciaNombre || "No disponible"}</span>
+              </div>
+              <div>
+                <span className="font-medium">Teléfono:</span><br />
+                <span>{paciente.contactoDeEmergenciaTelefono || "No disponible"}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <Separator className="bg-gray-200" />
-
-        {/* Alergias */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            Alergias
-          </h3>
-          <div className="space-y-2 text-gray-700 text-sm">
-            {alergias.length === 0 ? (
-              <p>No se encontraron alergias.</p>
-            ) : (
-              <ul>
-                {alergias.map(({ id, alergia, gravedad }) => (
-                  <li key={id} className="flex items-center gap-2">
-                    <span className="font-medium">{alergia.nombre}:</span>
-                    <span className="text-red-500 font-semibold">
-                      {gravedad}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* Alergias */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              Alergias
+            </h3>
+            <div className="text-gray-700 text-sm mt-2">
+              {alergias.length === 0 ? (
+                <p>No se encontraron alergias.</p>
+              ) : (
+                <ul>
+                  {alergias.map(({ id, alergia, gravedad }) => (
+                    <li key={id} className="flex items-center gap-2">
+                      <span className="font-medium">{alergia.nombre}:</span>
+                      <span className="text-red-500 font-semibold">
+                        {gravedad}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePacientesDeUnMedico } from "../../../citas/hooks/usePacientesDeUnMedico";
-
 import {
   Table,
   TableHeader,
@@ -11,7 +10,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
 import { getSexoBadge } from "../../recepcionista/util/patientUtils.jsx";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Spinner from "../../../../components/Spinner.jsx";
@@ -42,7 +40,6 @@ export default function TablaPacientesDeMedico() {
               <TableHead>Documento</TableHead>
               <TableHead>Teléfono</TableHead>
               <TableHead>Antecedentes</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -107,16 +104,7 @@ export default function TablaPacientesDeMedico() {
                       )}
                     </span>
                   </TableCell>
-                  <TableCell className="flex gap-2 justify-center items-center py-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      title="Ver detalle"
-                      // onClick={}
-                    >
-                      <Eye size={18} />
-                    </Button>
-                  </TableCell>
+                  {/* ACCIONES: columna vacía */}
                 </TableRow>
               ))
             )}
