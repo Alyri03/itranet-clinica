@@ -11,9 +11,15 @@ export function useCrearCita(onSuccessCallback) {
     onSuccess: (data, variables) => {
       toast.success("Cita registrada correctamente ✅");
       queryClient.invalidateQueries({ queryKey: ["citas"] });
+
       if (variables?.medicoId) {
         queryClient.invalidateQueries({
           queryKey: ["bloquesPorMedico", variables.medicoId],
+        });
+      }
+      if (variables?.pacienteId) {
+        queryClient.invalidateQueries({
+          queryKey: ["citas-todas-paciente", variables.pacienteId],
         });
       }
       if (onSuccessCallback) onSuccessCallback(data);

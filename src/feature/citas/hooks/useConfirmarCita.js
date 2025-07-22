@@ -7,11 +7,16 @@ export function useConfirmarCita(onSuccess) {
 
   return useMutation({
     mutationFn: async (id) => {
-      return confirmarCita(id);
+      return confirmarCita(id); 
     },
     onSuccess: (data) => {
       toast.success("Cita confirmada correctamente ✅");
       queryClient.invalidateQueries({ queryKey: ["citas"] });
+      if (data?.pacienteId) {
+        queryClient.invalidateQueries({
+          queryKey: ["citas-todas-paciente", data.pacienteId],
+        });
+      }
       if (onSuccess) onSuccess(data);
     },
     onError: (err) => {

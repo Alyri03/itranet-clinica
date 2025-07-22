@@ -10,6 +10,11 @@ export function useCancelarCita(onSuccess) {
     onSuccess: (data, variables) => {
       toast.success("Cita cancelada correctamente ✅");
       queryClient.invalidateQueries({ queryKey: ["citas"] });
+      if (data?.pacienteId) {
+        queryClient.invalidateQueries({
+          queryKey: ["citas-todas-paciente", data.pacienteId],
+        });
+      }
       if (onSuccess) onSuccess(data, variables);
     },
     onError: (err) => {
