@@ -44,19 +44,14 @@ export function useCrearPacienteAlergia(options = {}) {
     mutationFn: createPacienteAlergia,
     onSuccess: (...params) => {
       queryClient.invalidateQueries(["pacienteAlergias"]);
-      options.onSuccess && options.onSuccess(...params);
-    },
-    ...options,
-  });
-}
-
-// Mutación: Actualizar paciente-alergia
-export function useActualizarPacienteAlergia(options = {}) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, pacienteAlergia }) => updatePacienteAlergia(id, pacienteAlergia),
-    onSuccess: (...params) => {
-      queryClient.invalidateQueries(["pacienteAlergias"]);
+      // 👇 Invalidar todas las queries por pacienteId activas
+      queryClient.invalidateQueries({ queryKey: ["pacienteAlergias"] });
+      if (params[0]?.pacienteId) {
+        queryClient.invalidateQueries([
+          "pacienteAlergias",
+          params[0].pacienteId,
+        ]);
+      }
       options.onSuccess && options.onSuccess(...params);
     },
     ...options,
@@ -70,6 +65,37 @@ export function useEliminarPacienteAlergia(options = {}) {
     mutationFn: deletePacienteAlergia,
     onSuccess: (...params) => {
       queryClient.invalidateQueries(["pacienteAlergias"]);
+      // 👇 Si tienes el pacienteId aquí, invalidalo también
+      if (params[0]?.pacienteId) {
+        queryClient.invalidateQueries([
+          "pacienteAlergias",
+          params[0].pacienteId,
+        ]);
+      } else {
+        // O simplemente invalida todos los de pacienteAlergias (más general)
+        queryClient.invalidateQueries({ queryKey: ["pacienteAlergias"] });
+      }
+      options.onSuccess && options.onSuccess(...params);
+    },
+    ...options,
+  });
+}
+
+// Mutación: Actualizar paciente-alergia
+export function useActualizarPacienteAlergia(options = {}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, pacienteAlergia }) =>
+      updatePacienteAlergia(id, pacienteAlergia),
+    onSuccess: (...params) => {
+      queryClient.invalidateQueries({
+        queryKey: ["pacienteAlergias"],
+        exact: false,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["user-profile"],
+        exact: false,
+      });
       options.onSuccess && options.onSuccess(...params);
     },
     ...options,
