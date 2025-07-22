@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { DatePicker } from "@/components/ui/DatePicker"; // <--- Usa tu componente
 
 const sexoOptions = [
   { value: "MASCULINO", label: "Masculino" },
@@ -50,18 +51,16 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     contactoDeEmergenciaNombre: "",
     contactoDeEmergenciaTelefono: "",
   });
+  const [fechaNacimiento, setFechaNacimiento] = useState(null);
   const [error, setError] = useState("");
-  const queryClient = useQueryClient()
-
+  const queryClient = useQueryClient();
 
   const { data: tipoDocumentos = [], isLoading: loadingTiposDocumento } =
     useTiposDocumento();
 
   const mutation = useCrearPaciente({
     onSuccess: () => {
-      queryClient.invalidateQueries(["pacientes"])
-
-      console.log("onSuccess ejecutado");
+      queryClient.invalidateQueries(["pacientes"]);
       resetForm();
       setTimeout(() => {
         toast.success("Datos iniciales del usuario enviados");
@@ -73,6 +72,23 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     },
   });
 
+  // Sincroniza el datePicker con el campo string de fechaNacimiento
+  useEffect(() => {
+    if (fechaNacimiento) {
+      setForm((prev) => ({
+        ...prev,
+        fechaNacimiento: fechaNacimiento.toISOString().slice(0, 10), // yyyy-MM-dd
+      }));
+    }
+    if (fechaNacimiento === null) {
+      setForm((prev) => ({
+        ...prev,
+        fechaNacimiento: "",
+      }));
+    }
+    // eslint-disable-next-line
+  }, [fechaNacimiento]);
+
   useEffect(() => {
     if (!open) {
       resetForm();
@@ -80,7 +96,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     }
   }, [open]);
 
-  const resetForm = () =>
+  const resetForm = () => {
     setForm({
       nombres: "",
       apellidos: "",
@@ -96,6 +112,8 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
       contactoDeEmergenciaNombre: "",
       contactoDeEmergenciaTelefono: "",
     });
+    setFechaNacimiento(null);
+  };
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -178,13 +196,17 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              name="fechaNacimiento"
-              type="date"
-              value={form.fechaNacimiento}
-              onChange={handleChange}
-              className={inputClass}
-            />
+            {/* Aquí va el DatePicker en vez del input date */}
+            <div>
+        
+              <DatePicker
+                value={fechaNacimiento}
+                onChange={setFechaNacimiento}
+                placeholder="Selecciona fecha"
+                minYear={1900}
+                maxYear={new Date().getFullYear()}
+              />
+            </div>
             <Input
               name="nacionalidad"
               placeholder="Nacionalidad"
