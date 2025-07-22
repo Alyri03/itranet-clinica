@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RegistroPorRecepcion from "./RegistroPorRecepcion";
 import RegistroCompleto from "./RegistroCompleto";
 import { useVerificarDocumento } from "../hooks/useVerificarDocumento";
@@ -12,11 +12,10 @@ import {
 } from "@/components/ui/select";
 import { useTiposDocumento } from "../../pacientes/hooks/useTiposDocumento";
 
-// IMPORTA TU IMAGEN
 import imgRegistro from "@/assets/imgRegistro.jpg";
 
 export default function RegisterPage() {
-  const [step, setStep] = useState("verify-document"); // verify-document | porRecepcion | completo
+  const [step, setStep] = useState("verify-document");
   const [form, setForm] = useState({
     documentType: "DNI",
     documentTypeId: 1,
@@ -26,18 +25,26 @@ export default function RegisterPage() {
 
   const { data: tiposDocumento = [], isLoading } = useTiposDocumento();
 
+  useEffect(() => {
+    if ((step === "porRecepcion" || step === "completo") && !initialData) {
+      setStep("verify-document");
+    }
+    // eslint-disable-next-line
+  }, [step, initialData]);
+
   const verificarDocumento = useVerificarDocumento({
     onSuccess: (data) => {
       if (data.exists) {
-        // Pasamos el tipo de documento y el número junto al resultado de la API
         setInitialData({
           ...data,
           tipoDocumentoNombre: form.documentType,
+          tipoDocumentoId: form.documentTypeId,
           numeroDocumento: form.documentNumber,
         });
         setStep("porRecepcion");
       } else {
         setInitialData({
+          tipoDocumentoNombre: form.documentType,
           tipoDocumentoId: form.documentTypeId,
           numeroDocumento: form.documentNumber,
         });
@@ -46,6 +53,7 @@ export default function RegisterPage() {
     },
     onError: () => {
       setInitialData({
+        tipoDocumentoNombre: form.documentType,
         tipoDocumentoId: form.documentTypeId,
         numeroDocumento: form.documentNumber,
       });
@@ -144,12 +152,12 @@ export default function RegisterPage() {
           )}
 
           {/* Paso 2: Por recepción */}
-          {step === "porRecepcion" && (
+          {step === "porRecepcion" && initialData && (
             <RegistroPorRecepcion initialData={initialData} />
           )}
 
           {/* Paso 3: Completo */}
-          {step === "completo" && (
+          {step === "completo" && initialData && (
             <RegistroCompleto initialData={initialData} />
           )}
         </div>

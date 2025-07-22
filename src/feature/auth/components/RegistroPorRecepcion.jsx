@@ -1,271 +1,204 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
-import { useEnviarCodigo } from "../hooks/useEnviarCodigo";
-import { useVerificarCodigo } from "../hooks/useVerificarCodigo";
-import { useCompletarRegistro } from "../hooks/useCompletarRegistro";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { toast } from "sonner";
+import { useNavigate, Link } from "react-router-dom";
+import { useRegistroCompleto } from "../hooks/useRegistroCompleto";
+import { format } from "date-fns";
 
-export default function RegistroPorRecepcion({ initialData }) {
+export default function RegistroCompleto({ initialData }) {
   const navigate = useNavigate();
-
-  // Multi fallback para los nombres posibles de campos
-  const documentNumber =
-    initialData?.numeroDocumento ||
-    initialData?.documentNumber ||
-    initialData?.documento ||
-    initialData?.numero_documento ||
-    "";
-
-  const documentType =
-    initialData?.tipoDocumentoNombre ||
-    initialData?.documentType ||
-    initialData?.tipo_documento_nombre ||
-    "DNI";
-
-  const [formData, setFormData] = useState({
-    documentType,
-    documentNumber,
-    email: "",
-    password: "",
-  });
-
-  const [step, setStep] = useState("email-input");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const enviarCodigo = useEnviarCodigo({
+  const { mutate, isPending } = useRegistroCompleto({
     onSuccess: () => {
-      setStep("code-input");
-      toast.success("Código enviado al correo");
-    },
-    onError: () => {
-      toast.error("Error al enviar el código");
-    },
-  });
-
-  const verificarCodigo = useVerificarCodigo({
-    onSuccess: () => {
-      setStep("password");
-      toast.success("Código verificado correctamente");
-    },
-    onError: () => {
-      toast.error("Código inválido o expirado");
-    },
-  });
-
-  const completarRegistro = useCompletarRegistro({
-    onSuccess: () => {
-      toast.success("Registro completado exitosamente");
+      toast.success("Registro exitoso. Ya puedes iniciar sesión.");
       navigate("/login");
     },
-    onError: () => {
-      toast.error("Error al completar el registro");
+    onError: (err) => {
+      console.error("Error al registrar:", err);
+      toast.error(
+        err?.response?.data?.message || "Ocurrió un error al registrar"
+      );
     },
   });
 
-  const handleCodeChange = (index, value) => {
-    if (/^[0-9]?$/.test(value)) {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-      if (value && index < 5) {
-        const nextInput = document.getElementById(`otp-${index + 1}`);
-        if (nextInput) nextInput.focus();
-      }
+  const tipoDocumentoNombre =
+    initialData?.tipoDocumentoNombre || initialData?.documentType || "DNI";
+  const numeroDocumento =
+    initialData?.numeroDocumento || initialData?.documentNumber || "";
+
+  const [fechaNacimiento, setFechaNacimiento] = useState(null);
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    nombres: "",
+    apellidos: "",
+    sexo: "MASCULINO",
+    tipoDocumentoId: initialData?.tipoDocumentoId || 1,
+    numeroDocumento: numeroDocumento,
+    fechaNacimiento: "",
+    telefono: "",
+    direccion: "",
+    modalidadAtencion: "PARTICULAR",
+    contactoEmergenciaNombre: "",
+    contactoEmergenciaTelefono: "",
+    seguroId: null,
+    numeroPoliza: null,
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setForm((prev) => ({
+        ...prev,
+        tipoDocumentoId: initialData?.tipoDocumentoId ?? prev.tipoDocumentoId,
+        numeroDocumento: numeroDocumento || prev.numeroDocumento,
+      }));
     }
+  }, [initialData]);
+
+  useEffect(() => {
+    if (fechaNacimiento) {
+      setForm((prev) => ({
+        ...prev,
+        fechaNacimiento: format(fechaNacimiento, "yyyy-MM-dd"),
+      }));
+    }
+  }, [fechaNacimiento]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutate(form);
   };
 
   return (
     <section className="flex items-center justify-center min-h-screen px-4 bg-white">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-xl space-y-6">
         <Link to="/login" className="text-sm text-gray-500 underline">
           Volver al login
         </Link>
-        <h1 className="text-3xl font-bold text-center mb-3">
-          Registro de paciente (datos iniciales)
-        </h1>
-
-        {/* Paso 1: Email, mostrando documento y tipo bloqueados */}
-        {step === "email-input" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              enviarCodigo.mutate({
-                documento: documentNumber,
-                email: formData.email,
-              });
-            }}
-            className="space-y-4"
-          >
-            <div className="flex gap-4">
-              <div className="w-1/2">
+        <h1 className="text-3xl font-bold text-center">Registro completo</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Campos bloqueados */}
+          {(tipoDocumentoNombre || numeroDocumento) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tipo de documento
                 </label>
                 <Input
-                  value={documentType}
+                  value={tipoDocumentoNombre}
                   readOnly
                   className="bg-gray-100 cursor-not-allowed"
+                  tabIndex={-1}
                 />
               </div>
-              <div className="w-1/2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   N° Documento
                 </label>
                 <Input
-                  value={documentNumber}
+                  value={numeroDocumento}
                   readOnly
                   className="bg-gray-100 cursor-not-allowed"
+                  tabIndex={-1}
                 />
               </div>
             </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              name="nombres"
+              placeholder="Nombres"
+              value={form.nombres}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="apellidos"
+              placeholder="Apellidos"
+              value={form.apellidos}
+              onChange={handleChange}
+              required
+            />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Correo electrónico
+                Fecha de nacimiento
               </label>
-              <Input
-                type="email"
-                placeholder="Correo electrónico"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-                required
+              <DatePicker
+                value={fechaNacimiento}
+                onChange={setFechaNacimiento}
+                placeholder="Selecciona fecha"
               />
             </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={enviarCodigo.isPending}
-            >
-              {enviarCodigo.isPending ? "Enviando..." : "Enviar código"}
-            </Button>
-          </form>
-        )}
-
-        {/* Paso 2: Código */}
-        {step === "code-input" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              verificarCodigo.mutate({
-                email: formData.email,
-                code: otp.join(""),
-              });
-            }}
-            className="space-y-4"
-          >
-            <div className="flex justify-center gap-2">
-              {otp.map((digit, i) => (
-                <Input
-                  key={i}
-                  id={`otp-${i}`}
-                  maxLength={1}
-                  className="w-10 text-center"
-                  value={digit}
-                  onChange={(e) => handleCodeChange(i, e.target.value)}
-                />
-              ))}
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={verificarCodigo.isPending}
-            >
-              {verificarCodigo.isPending
-                ? "Verificando..."
-                : "Verificar código"}
-            </Button>
-          </form>
-        )}
-
-        {/* Paso 3: Contraseña + Resumen */}
-        {step === "password" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              completarRegistro.mutate({
-                documento: documentNumber,
-                email: formData.email,
-                password: formData.password,
-              });
-            }}
-            className="space-y-4"
-          >
-            {/* Mostrar el resumen de datos arriba */}
-            <div className="flex gap-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de documento
-                </label>
-                <Input
-                  value={documentType}
-                  readOnly
-                  className="bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  N° Documento
-                </label>
-                <Input
-                  value={documentNumber}
-                  readOnly
-                  className="bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Correo electrónico
-              </label>
-              <Input
-                value={formData.email}
-                readOnly
-                className="bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            {/* Contraseña */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contraseña
-              </label>
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Contraseña"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
-                required
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={completarRegistro.isPending}
-            >
-              {completarRegistro.isPending
-                ? "Registrando..."
-                : "Finalizar registro"}
-            </Button>
-          </form>
-        )}
+            <Input
+              name="sexo"
+              placeholder="Sexo"
+              value={form.sexo}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="telefono"
+              placeholder="Teléfono"
+              value={form.telefono}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="direccion"
+              placeholder="Dirección"
+              value={form.direccion}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="modalidadAtencion"
+              placeholder="Modalidad de atención"
+              value={form.modalidadAtencion}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="contactoEmergenciaNombre"
+              placeholder="Nombre contacto de emergencia"
+              value={form.contactoEmergenciaNombre}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="contactoEmergenciaTelefono"
+              placeholder="Teléfono contacto emergencia"
+              value={form.contactoEmergenciaTelefono}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="email"
+              placeholder="Correo electrónico"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              name="password"
+              type="password"
+              placeholder="Contraseña"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <Button className="w-full" type="submit" disabled={isPending}>
+            {isPending ? "Registrando..." : "Registrarme"}
+          </Button>
+        </form>
       </div>
     </section>
   );
