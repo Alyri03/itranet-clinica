@@ -7,28 +7,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useConfirmarCita } from "../hooks/useConfirmarCita";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogConfirmar({ open, onOpenChange, cita }) {
-  const queryClient = useQueryClient();
-  const confirmarCitaMutation = useConfirmarCita();
+  const confirmarCitaMutation = useConfirmarCita(() => onOpenChange(false));
 
   if (!cita) return null;
 
   const handleConfirmar = () => {
-    console.log("🟢 Confirmando desde Dialog:", cita);
-
-    confirmarCitaMutation.mutate(cita.id, {
-      onSuccess: () => {
-        console.log("✅ Cita confirmada desde Dialog");
-        queryClient.invalidateQueries({ queryKey: ["Citas"] });
-        onOpenChange(false);
-      },
-      onError: (err) => {
-        console.error("❌ Error al confirmar desde Dialog:", err);
-        onOpenChange(false);
-      },
-    });
+    confirmarCitaMutation.mutate(cita.id);
   };
 
   return (

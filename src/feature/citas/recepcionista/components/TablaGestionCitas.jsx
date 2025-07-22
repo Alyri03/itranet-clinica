@@ -14,8 +14,7 @@ import { useMedico } from "../../../medicos/hooks/useMedico";
 import { usePacientes } from "../../../pacientes/hooks/usePacientes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, CheckCircle, XCircle } from "lucide-react";
-import { Eye } from "lucide-react";
+import { CheckCircle, XCircle, Eye } from "lucide-react";
 import DialogConfirmar from "../../components/DialogConfirmar";
 import DialogCancelar from "../../components/DialogCancelar";
 import { useConfirmarCita } from "../../hooks/useConfirmarCita";
@@ -175,9 +174,7 @@ export default function TablaGestionCitas() {
                 <TableCell className="flex justify-center gap-2">
                   {cita.estadoCita === "PENDIENTE" ? (
                     <>
-                      <Button variant="outline" size="icon" title="Reprogramar">
-                        <CalendarClock className="w-4 h-4" />
-                      </Button>
+                      {/* Botón de reprogramar ELIMINADO */}
                       <Button
                         size="icon"
                         className="bg-green-600 hover:bg-green-700 text-white"

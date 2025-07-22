@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner"; // 👈 Importación
+import { toast } from "sonner"; 
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEliminarPaciente({
@@ -19,13 +19,13 @@ export default function DialogEliminarPaciente({
     onSuccess: () => {
       queryClient.invalidateQueries(["pacientes"])
 
-      toast.success(`Paciente "${paciente?.nombres}" eliminado correctamente`); // ✅ Toast de éxito
+      toast.success(`Paciente "${paciente?.nombres}" eliminado correctamente`); 
       setLocalLoading(false);
       onClose();
       onDeleted && onDeleted(paciente);
     },
     onError: () => {
-      toast.error("Ocurrió un error al eliminar el paciente."); // ❌ Toast de error
+      toast.error("Ocurrió un error al eliminar el paciente.");
       setLocalLoading(false);
     },
   });

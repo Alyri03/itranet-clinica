@@ -7,25 +7,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useCancelarCita } from "../hooks/useCancelarCita";
-import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogCancelar({ open, onOpenChange, citaId }) {
-  const queryClient = useQueryClient();
-  const { mutate: cancelarCita, isLoading } = useCancelarCita();
+  const { mutate: cancelarCita, isLoading } = useCancelarCita(() => onOpenChange(false));
 
   const handleCancelar = () => {
-    console.log("🛑 Cancelando cita con ID:", citaId);
-    cancelarCita(citaId, {
-      onSuccess: () => {
-        console.log("✅ Cita cancelada con éxito");
-        onOpenChange(false);
-        queryClient.invalidateQueries({ queryKey: ["Citas"] });
-      },
-      onError: (err) => {
-        console.error("❌ Error al cancelar cita:", err);
-        onOpenChange(false);
-      },
-    });
+    cancelarCita(citaId);
   };
 
   return (

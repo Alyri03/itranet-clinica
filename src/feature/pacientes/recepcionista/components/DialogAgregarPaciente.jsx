@@ -61,7 +61,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     onSuccess: () => {
       queryClient.invalidateQueries(["pacientes"])
 
-      console.log("onSuccess ejecutado"); // Verifica si llega aquí
+      console.log("onSuccess ejecutado");
       resetForm();
       setTimeout(() => {
         toast.success("Datos iniciales del usuario enviados");

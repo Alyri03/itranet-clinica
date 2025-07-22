@@ -1,12 +1,21 @@
-import { useMutation } from "@tanstack/react-query";
+// useCrearCita.js
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { crearCita } from "../api/citasApi";
-import { toast } from "sonner"; // o el sistema de notificaciones que uses
+import { toast } from "sonner";
 
 export function useCrearCita(onSuccessCallback) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: crearCita,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       toast.success("Cita registrada correctamente ✅");
+      queryClient.invalidateQueries({ queryKey: ["citas"] });
+      if (variables?.medicoId) {
+        queryClient.invalidateQueries({
+          queryKey: ["bloquesPorMedico", variables.medicoId],
+        });
+      }
       if (onSuccessCallback) onSuccessCallback(data);
     },
     onError: (error) => {
