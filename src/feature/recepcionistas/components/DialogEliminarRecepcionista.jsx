@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useEliminarRecepcionista } from "../hooks/useEliminarRecepcionista";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEliminarRecepcionista({
   open,
@@ -16,8 +17,11 @@ export default function DialogEliminarRecepcionista({
   recepcionista,
   onSuccess, // Nuevo prop para refrescar tabla
 }) {
+  const queryClient = useQueryClient()
+
   const { mutate, isLoading } = useEliminarRecepcionista({
     onSuccess: () => {
+      queryClient.invalidateQueries(["recepcionistas"])
       toast.success("Recepcionista eliminado exitosamente");
       if (onSuccess) onSuccess();
       else onOpenChange(false);

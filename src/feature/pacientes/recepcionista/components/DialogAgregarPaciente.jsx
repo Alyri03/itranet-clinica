@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const sexoOptions = [
   { value: "MASCULINO", label: "Masculino" },
@@ -50,12 +51,16 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     contactoDeEmergenciaTelefono: "",
   });
   const [error, setError] = useState("");
+  const queryClient = useQueryClient()
+
 
   const { data: tipoDocumentos = [], isLoading: loadingTiposDocumento } =
     useTiposDocumento();
 
   const mutation = useCrearPaciente({
     onSuccess: () => {
+      queryClient.invalidateQueries(["pacientes"])
+
       console.log("onSuccess ejecutado"); // Verifica si llega aquí
       resetForm();
       setTimeout(() => {
@@ -215,7 +220,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
                 {loadingTiposDocumento
                   ? "Cargando..."
                   : tipoDocumentos.find((d) => d.id === +form.tipoDocumento)
-                      ?.nombre || "Seleccione tipo de documento"}
+                    ?.nombre || "Seleccione tipo de documento"}
               </SelectTrigger>
               <SelectContent>
                 {tipoDocumentos.map((opt) => (

@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEliminarMedico } from "../hooks/useEliminarMedico";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEliminarMedico({
   medico,
@@ -18,6 +19,8 @@ export default function DialogEliminarMedico({
 }) {
   const [internalOpen, setInternalOpen] = useState(open);
   const [isWaiting, setIsWaiting] = useState(false); // para el timeout
+  const queryClient = useQueryClient()
+
 
   useEffect(() => {
     setInternalOpen(open);
@@ -25,6 +28,7 @@ export default function DialogEliminarMedico({
 
   const eliminarMutation = useEliminarMedico({
     onSuccess: async () => {
+      queryClient.invalidateQueries(["medicos"])
       toast.success("Médico eliminado correctamente");
       setInternalOpen(false);
       onClose();
@@ -86,8 +90,8 @@ export default function DialogEliminarMedico({
             {eliminarMutation.isLoading
               ? "Eliminando..."
               : isWaiting
-              ? "Espera un momento..."
-              : "Eliminar"}
+                ? "Espera un momento..."
+                : "Eliminar"}
           </Button>
         </DialogFooter>
       </DialogContent>

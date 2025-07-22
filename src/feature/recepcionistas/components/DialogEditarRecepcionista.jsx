@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEditarRecepcionista({
   open,
@@ -26,6 +27,8 @@ export default function DialogEditarRecepcionista({
   recepcionista,
 }) {
   const { data: tiposDocumento } = useTiposDocumento();
+  const queryClient = useQueryClient()
+
 
   // Hook para obtener correo actualizado (solo cuando el modal está abierto y hay id)
   const recepId = recepcionista?.id;
@@ -40,6 +43,7 @@ export default function DialogEditarRecepcionista({
   // Hook de actualización
   const { mutate, isLoading } = useActualizarRecepcionista({
     onSuccess: () => {
+      queryClient.invalidateQueries(["recepcionistas"])
       toast.success("Recepcionista actualizado");
       onOpenChange(false);
     },
@@ -183,8 +187,8 @@ export default function DialogEditarRecepcionista({
                 loadingCorreo
                   ? "Cargando..."
                   : errorCorreo
-                  ? "No disponible"
-                  : form.correo
+                    ? "No disponible"
+                    : form.correo
               }
               onChange={handleChange}
               required

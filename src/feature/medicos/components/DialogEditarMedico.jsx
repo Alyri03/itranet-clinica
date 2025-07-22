@@ -19,6 +19,7 @@ import { useEspecialidades } from "../hooks/useEspecialidades";
 import { useEliminarEspecialidadDeMedico } from "../hooks/useEliminarEspecialidadDeMedico";
 import { useAsignarEspecialidad } from "../hooks/useAsignarEspecialidad";
 import { useEspecialidadByMedico } from "../hooks/useEspecialidadByMedico";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEditarMedico({
   open,
@@ -26,6 +27,7 @@ export default function DialogEditarMedico({
   medico,
   onSuccess,
 }) {
+  const queryClient = useQueryClient()
   const { data: tipos = [] } = useTiposDocumento();
   const { data: especialidades = [] } = useEspecialidades();
   const eliminarEspecialidad = useEliminarEspecialidadDeMedico();
@@ -66,6 +68,7 @@ export default function DialogEditarMedico({
 
   const actualizarMedico = useActualizarMedico({
     onSuccess: () => {
+      queryClient.invalidateQueries(["medicos"])
       toast.success("Médico actualizado correctamente");
       onSuccess?.();
       onClose();
@@ -99,8 +102,8 @@ export default function DialogEditarMedico({
   // Especialidades que aún no están seleccionadas
   const especialidadesDisponibles = especialidades
     ? especialidades.filter(
-        (esp) => !especialidadesLocal.includes(String(esp.id))
-      )
+      (esp) => !especialidadesLocal.includes(String(esp.id))
+    )
     : [];
 
   // Al guardar:

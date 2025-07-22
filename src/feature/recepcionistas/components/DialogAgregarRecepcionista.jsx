@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const turnos = [
   { value: "DIURNO", label: "Diurno" },
@@ -21,8 +22,10 @@ const turnos = [
 
 export default function DialogAgregarRecepcionista({ open, onOpenChange }) {
   const { data: tiposDocumento } = useTiposDocumento();
+  const queryClient = useQueryClient()
   const { mutate, isLoading } = useCrearRecepcionista({
     onSuccess: () => {
+      queryClient.invalidateQueries(["recepcionistas"])
       toast.success("Recepcionista registrado exitosamente");
       onOpenChange(false);
     },

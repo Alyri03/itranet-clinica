@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useActualizarPaciente } from "../../hooks/useActualizarPaciente";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const inputClass = "h-[36px] text-sm";
 
@@ -21,11 +22,13 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
     contactoDeEmergenciaNombre: "",
     contactoDeEmergenciaTelefono: "",
   });
+  const queryClient = useQueryClient()
 
   const [error, setError] = useState("");
 
   const { mutate, isLoading } = useActualizarPaciente({
     onSuccess: (data) => {
+      queryClient.invalidateQueries(["pacientes"])
       toast.success("Paciente actualizado correctamente");
       onClose();
       setError("");

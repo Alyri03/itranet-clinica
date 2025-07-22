@@ -13,13 +13,16 @@ import { FileText, Pill, CircleCheckBig } from "lucide-react";
 import { useEnviarResultado } from "../hooks/useEnviarResultado";
 import { useAtenderCita } from "../../citas/hooks/useAtenderCita";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function RegistroAtencion({ cita }) {
   const { citaId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient()
 
   const atenderCita = useAtenderCita({
     onSuccess: () => {
+      queryClient.invalidateQueries(["PacientesDeUnMedico", cita.medicoId])
       navigate("/intranet/medico/agenda");
     },
     onError: (err) => {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner"; // 👈 Importación
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogEliminarPaciente({
   open,
@@ -12,9 +13,12 @@ export default function DialogEliminarPaciente({
   onDeleted,
 }) {
   const [localLoading, setLocalLoading] = useState(false);
+  const queryClient = useQueryClient()
 
   const { mutate, isLoading } = useEliminarPaciente({
     onSuccess: () => {
+      queryClient.invalidateQueries(["pacientes"])
+
       toast.success(`Paciente "${paciente?.nombres}" eliminado correctamente`); // ✅ Toast de éxito
       setLocalLoading(false);
       onClose();

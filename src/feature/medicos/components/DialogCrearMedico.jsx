@@ -21,10 +21,13 @@ import { useEspecialidades } from "../hooks/useEspecialidades";
 import { useCrearMedico } from "../hooks/useCrearMedico";
 import { useAsignarEspecialidad } from "../hooks/useAsignarEspecialidad";
 import Spinner from "../../../components/Spinner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DialogCrearMedico({ open, onClose }) {
   const { data: tipos = [] } = useTiposDocumento();
   const { data: especialidades = [] } = useEspecialidades();
+  const queryClient = useQueryClient()
+
 
   const [selectedEspecialidades, setSelectedEspecialidades] = useState([]);
   const [currentEspecialidad, setCurrentEspecialidad] = useState("");
@@ -66,6 +69,7 @@ export default function DialogCrearMedico({ open, onClose }) {
           return;
         }
       }
+      queryClient.invalidateQueries(["medicos"])
       toast.success("Médico creado correctamente");
       handleCancel();
       onClose();
@@ -104,8 +108,8 @@ export default function DialogCrearMedico({ open, onClose }) {
 
   const especialidadesDisponibles = especialidades
     ? especialidades.filter(
-        (e) => !selectedEspecialidades.includes(String(e.id))
-      )
+      (e) => !selectedEspecialidades.includes(String(e.id))
+    )
     : [];
 
   const handleSubmit = (e) => {
