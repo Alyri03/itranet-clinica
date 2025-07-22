@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTiposDocumento } from "../../pacientes/hooks/useTiposDocumento";
 import { useActualizarRecepcionista } from "../hooks/useActualizarRecepcionista";
+import { useCorreoRecepcionista } from "../hooks/useCorreoRecepcionista";
 import {
   Dialog,
   DialogContent,
@@ -19,13 +20,22 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-// Props: open, onOpenChange, recepcionista (objeto a editar)
 export default function DialogEditarRecepcionista({
   open,
   onOpenChange,
   recepcionista,
 }) {
   const { data: tiposDocumento } = useTiposDocumento();
+
+  // Hook para obtener correo actualizado (solo cuando el modal está abierto y hay id)
+  const recepId = recepcionista?.id;
+  const {
+    data: correoRecepcionista,
+    isLoading: loadingCorreo,
+    isError: errorCorreo,
+  } = useCorreoRecepcionista(open ? recepId : null, {
+    onError: () => toast.error("No se pudo obtener el correo"),
+  });
 
   // Hook de actualización
   const { mutate, isLoading } = useActualizarRecepcionista({
@@ -39,7 +49,7 @@ export default function DialogEditarRecepcionista({
     },
   });
 
-  // Estado local del formulario
+  // Estado local SOLO de los campos editables
   const [form, setForm] = useState({
     nombres: "",
     apellidos: "",
@@ -47,15 +57,10 @@ export default function DialogEditarRecepcionista({
     tipoDocumentoId: "",
     telefono: "",
     direccion: "",
-    imagenUrl: null,
-    turnoTrabajo: "",
-    fechaContratacion: "",
-    usuarioId: "",
     correo: "",
-    password: "",
   });
 
-  // Carga los datos cuando cambia el recepcionista seleccionado
+  // Carga datos cuando cambia el recepcionista O el correo obtenido
   useEffect(() => {
     if (recepcionista) {
       setForm({
@@ -67,17 +72,10 @@ export default function DialogEditarRecepcionista({
           : "",
         telefono: recepcionista.telefono || "",
         direccion: recepcionista.direccion || "",
-        imagenUrl: recepcionista.imagenUrl ?? null,
-        turnoTrabajo: recepcionista.turnoTrabajo || "",
-        fechaContratacion: recepcionista.fechaContratacion
-          ? recepcionista.fechaContratacion
-          : "",
-        usuarioId: recepcionista.usuarioId || "",
-        correo: recepcionista.correo || "",
-        password: "", // Por seguridad, siempre pedir la nueva contraseña en edición
+        correo: correoRecepcionista || "", // SIEMPRE desde el endpoint
       });
     }
-  }, [recepcionista]);
+  }, [recepcionista, correoRecepcionista]);
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -95,7 +93,7 @@ export default function DialogEditarRecepcionista({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Payload completo, como el que usas en Postman:
+
     const payload = {
       nombres: form.nombres,
       apellidos: form.apellidos,
@@ -103,13 +101,7 @@ export default function DialogEditarRecepcionista({
       tipoDocumentoId: Number(form.tipoDocumentoId),
       telefono: form.telefono,
       direccion: form.direccion,
-      imagenUrl: form.imagenUrl,
-      turnoTrabajo: form.turnoTrabajo || "DIURNO",
-      fechaContratacion:
-        form.fechaContratacion || new Date().toISOString().split("T")[0],
-      usuarioId: Number(form.usuarioId),
       correo: form.correo,
-      password: form.password, // Obligatorio para editar
     };
 
     mutate({ id: recepcionista.id, data: payload });
@@ -182,47 +174,21 @@ export default function DialogEditarRecepcionista({
               required
             />
           </div>
-          <div className="flex gap-2">
-            <Select
-              name="turnoTrabajo"
-              value={form.turnoTrabajo}
-              onValueChange={(val) => handleSelect("turnoTrabajo", val)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Turno de trabajo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DIURNO">Diurno</SelectItem>
-                <SelectItem value="NOCTURNO">Nocturno</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              name="fechaContratacion"
-              type="date"
-              placeholder="Fecha de contratación"
-              value={form.fechaContratacion}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="flex gap-2">
+          <div>
             <Input
               name="correo"
               type="email"
               placeholder="Correo electrónico"
-              value={form.correo}
+              value={
+                loadingCorreo
+                  ? "Cargando..."
+                  : errorCorreo
+                  ? "No disponible"
+                  : form.correo
+              }
               onChange={handleChange}
               required
-            />
-            <Input
-              name="password"
-              type="password"
-              placeholder="Contraseña nueva (obligatoria)"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={6}
+              readOnly={loadingCorreo || !!errorCorreo} // Si hay error/cargando no editable
             />
           </div>
           <DialogFooter>

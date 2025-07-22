@@ -62,7 +62,16 @@ export async function getCitaById(citaId) {
     const response = await axiosInstance.get(`/citas/${citaId}`);
     return response.data;
   } catch (error) {
-    console.error("❌ Error al obtener la cita por ID:", error.response?.data || error);
+    console.error(
+      "❌ Error al obtener la cita por ID:",
+      error.response?.data || error
+    );
     throw error;
   }
+}
+export async function getTodasCitasPorPaciente(pacienteId) {
+  const response = await axiosInstance.get(
+    `/citas/todas/paciente/${pacienteId}`
+  );
+  return response.data;
 }

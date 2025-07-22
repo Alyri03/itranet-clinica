@@ -55,17 +55,23 @@ export default function HistorialPaciente({ pacienteId }) {
   // Parsear resultados (diagnósticos)
   const resultados = parseResultados(resultadosRaw);
 
-  // Parsear historial y crear un mapa { idHistorial: fecha }
+  // Mapear fechas por historialId
   const historialFechaMap = React.useMemo(() => {
-    if (!Array.isArray(historialRaw)) return {};
-    const map = {};
-    for (const item of historialRaw) {
-      if (item.id && item.fecha) {
-        map[item.id] = item.fecha;
-      }
+    // Si viene como array, armar el map normal
+    if (Array.isArray(historialRaw)) {
+      return Object.fromEntries(
+        historialRaw.filter(x => x && x.id && x.fecha).map(x => [x.id, x.fecha])
+      );
     }
-    return map;
+    // Si viene como objeto, usar su id y fecha
+    if (historialRaw && typeof historialRaw === "object" && historialRaw.id && historialRaw.fecha) {
+      return { [historialRaw.id]: historialRaw.fecha };
+    }
+    return {};
   }, [historialRaw]);
+
+  // Si solo hay una fecha y no hay match por id, igual mostrarla
+  const fallbackFecha = Object.values(historialFechaMap)[0];
 
   const [resultadoSeleccionado, setResultadoSeleccionado] = React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -110,8 +116,12 @@ export default function HistorialPaciente({ pacienteId }) {
           </TableHeader>
           <TableBody>
             {resultados.map((resultado) => {
-              // Buscar la fecha usando el historial clínico relacionado
-              const fecha = historialFechaMap[resultado.historialClinicoId];
+              // Buscar la fecha usando el historial clínico relacionado o fallback
+              const fecha =
+                historialFechaMap[resultado.historialClinicoId] ||
+                fallbackFecha ||
+                null;
+
               return (
                 <TableRow
                   key={resultado.id}
@@ -119,7 +129,9 @@ export default function HistorialPaciente({ pacienteId }) {
                 >
                   <TableCell className="font-medium flex items-center gap-2 text-xs text-gray-800">
                     <Calendar className="h-4 w-4 text-gray-500" />
-                    {fecha ? formatearFecha(fecha) : <span className="text-gray-400 italic">Sin fecha</span>}
+                    {fecha ? formatearFecha(fecha) : (
+                      <span className="text-gray-400 italic">Sin fecha</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-xs text-gray-700">
                     {resultado.diagnostico}

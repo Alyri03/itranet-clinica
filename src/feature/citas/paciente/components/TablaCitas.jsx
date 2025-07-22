@@ -1,5 +1,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
-import { useCitasPaciente } from "../../hooks/useCitasPaciente";
+import { useServicios } from "../../../medicos/hooks/useServicios";
+import { useMedico } from "../../../medicos/hooks/useMedico";
+import { useTodasCitasPorPaciente } from "../../hooks/useTodasCitasPorPaciente";
 import {
   Table,
   TableBody,
@@ -19,25 +21,21 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Eye } from "lucide-react";
-import { getInitials } from "../../../../utils/Avatar";
 import { useState } from "react";
 
+// Badge visual con tus variantes
 function EstadoBadge({ estado }) {
-  if (estado === "CONFIRMADA")
-    return (
-      <Badge className="bg-green-100 text-green-700 font-semibold px-3">
-        {estado}
-      </Badge>
-    );
-  if (estado === "CANCELADA")
-    return (
-      <Badge className="bg-red-100 text-red-700 font-semibold px-3">
-        {estado}
-      </Badge>
-    );
+  const mapEstadoToVariant = {
+    PENDIENTE: "estado-pendiente",
+    CONFIRMADA: "estado-confirmada",
+    CANCELADA: "estado-cancelada",
+    ATENDIDA: "estado-atendida",
+    NO_PRESENTADO: "estado-no-presentado",
+    REPROGRAMADA: "estado-reprogramada",
+  };
   return (
-    <Badge className="bg-yellow-100 text-yellow-700 font-semibold px-3">
-      {estado}
+    <Badge variant={mapEstadoToVariant[estado] || "outline"}>
+      {estado.replace(/_/g, " ")}
     </Badge>
   );
 }
@@ -51,9 +49,29 @@ const formatearFecha = (fecha) =>
 
 const formatearHora = (hora) => hora?.slice(0, 5);
 
+// Saca iniciales para el avatar
+function getInitials(nombreCompleto = "") {
+  if (!nombreCompleto) return "";
+  const partes = nombreCompleto.split(" ");
+  return (partes[0]?.[0] ?? "") + (partes.at(-1)?.[0] ?? "");
+}
+
 export default function TablaCitas() {
   const pacienteId = useAuthStore((s) => s.pacienteId);
-  const { data: citas = [], isLoading, error } = useCitasPaciente(pacienteId);
+  const {
+    data: citas = [],
+    isLoading,
+    error,
+  } = useTodasCitasPorPaciente(pacienteId);
+
+  // Carga todos los servicios y médicos
+  const { data: servicios = [] } = useServicios();
+  const { data: medicos = [] } = useMedico(); // Aquí sigues usando useMedico normal
+
+  const getMedicoNombre = (id) => {
+    const medico = medicos.find((m) => m.id === id);
+    return medico ? `${medico.nombres} ${medico.apellidos}` : `Médico #${id}`;
+  };
 
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -63,14 +81,17 @@ export default function TablaCitas() {
     setDialogOpen(true);
   };
 
+  const getServicioNombre = (id) =>
+    servicios.find((s) => s.id === id)?.nombre || `Servicio #${id}`;
+
   if (isLoading) return <p className="text-muted">Cargando tus citas...</p>;
   if (error) return <p className="text-red-500">Error al cargar citas.</p>;
 
   return (
     <div className="bg-white shadow rounded-xl p-4 overflow-x-auto">
-      <h2 className="text-lg font-semibold mb-4">Próximas Citas</h2>
+      <h2 className="text-lg font-semibold mb-4">Todas tus Citas</h2>
       {citas.length === 0 ? (
-        <p className="text-muted-foreground">No tienes citas pendientes.</p>
+        <p className="text-muted-foreground">No tienes citas registradas.</p>
       ) : (
         <Table>
           <TableHeader>
@@ -92,13 +113,13 @@ export default function TablaCitas() {
                   <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-purple-700 text-white font-semibold">
-                        {getInitials(cita.medicoNombreCompleto)}
+                        {getInitials(getMedicoNombre(cita.medicoId))}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{cita.medicoNombreCompleto}</span>
+                    <span>{getMedicoNombre(cita.medicoId)}</span>
                   </div>
                 </TableCell>
-                <TableCell>{cita.servicioNombre}</TableCell>
+                <TableCell>{getServicioNombre(cita.servicioId)}</TableCell>
                 <TableCell>
                   <EstadoBadge estado={cita.estadoCita} />
                 </TableCell>
@@ -136,15 +157,23 @@ export default function TablaCitas() {
               </div>
               <div>
                 <span className="font-semibold">Médico:</span>{" "}
-                {citaSeleccionada.medicoNombreCompleto}
+                {getMedicoNombre(citaSeleccionada.medicoId)}
               </div>
               <div>
                 <span className="font-semibold">Servicio:</span>{" "}
-                {citaSeleccionada.servicioNombre}
+                {getServicioNombre(citaSeleccionada.servicioId)}
               </div>
               <div>
                 <span className="font-semibold">Estado:</span>{" "}
                 <EstadoBadge estado={citaSeleccionada.estadoCita} />
+              </div>
+              <div>
+                <span className="font-semibold">Notas:</span>{" "}
+                {citaSeleccionada.notas || (
+                  <span className="italic text-muted-foreground">
+                    Sin notas
+                  </span>
+                )}
               </div>
             </div>
           )}

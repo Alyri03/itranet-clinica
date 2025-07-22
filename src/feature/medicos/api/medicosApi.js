@@ -27,7 +27,7 @@ export const getServicios = async () => {
 };
 
 export const getMedicos = async () => {
-  const { data } = await axiosInstance.get("medicos");
+  const { data } = await axiosInstance.get("/medicos");
   return data;
 };
 
