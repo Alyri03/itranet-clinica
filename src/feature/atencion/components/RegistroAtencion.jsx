@@ -31,6 +31,7 @@ export default function RegistroAtencion({ cita }) {
   const atenderCita = useAtenderCita({
     onSuccess: async () => {
       queryClient.invalidateQueries(["PacientesDeUnMedico", cita.medicoId]);
+      queryClient.invalidateQueries(["citas"])
       toast.success("Atención finalizada correctamente");
       setOpen(false);
       finalizarAtencion(); // <-- Cambia el estado del store
