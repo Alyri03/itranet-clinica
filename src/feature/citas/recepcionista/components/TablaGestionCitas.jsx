@@ -23,6 +23,7 @@ import Spinner from "../../../../components/Spinner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "../../../../utils/Avatar";
 import { normalizarEstadoBadge } from "../../../../utils/badgeEstadoNormalizer";
+import DialogCitaDetalle from "../../components/DialogCitaDetalle";
 
 export default function TablaGestionCitas() {
   const { data: citasRaw = [], isLoading } = useGetCitas();
@@ -55,6 +56,12 @@ export default function TablaGestionCitas() {
     open: false,
     citaId: null,
   });
+  const [citaDetalle, setCitaDetalle] = useState({
+    cita: null,
+    medico: null,
+    paciente: null,
+    servicio: null
+  })
 
   const confirmarCitaMutation = useConfirmarCita();
 
@@ -64,6 +71,7 @@ export default function TablaGestionCitas() {
   }
 
   const handleAbrirConfirmar = (cita) => setCitaAConfirmar(cita);
+  const handleAbrirDetalle = (cita, medico, paciente, servicio ) => setCitaDetalle({ cita, medico, paciente, servicio })
   const handleCerrarConfirmar = () => setCitaAConfirmar(null);
 
   const handleConfirmar = (citaId) => {
@@ -184,6 +192,13 @@ export default function TablaGestionCitas() {
                         <CheckCircle className="w-4 h-4" />
                       </Button>
                       <Button
+                        size="icon"
+                        title="Ver detalle"
+                        onClick={() => handleAbrirDetalle( cita, medico, paciente, servicio )}
+                      >
+                        <Eye />
+                      </Button>
+                      <Button
                         variant="outline"
                         size="icon"
                         title="Cancelar"
@@ -214,6 +229,19 @@ export default function TablaGestionCitas() {
         cita={citaAConfirmar}
         onConfirm={handleConfirmar}
         isLoading={confirmarCitaMutation.isLoading}
+      />
+
+      <DialogCitaDetalle
+        open={!!citaDetalle.cita}
+        onOpenChange={(open) => {
+          if (!open) setCitaDetalle({
+            cita: null,
+            medico: null,
+            paciente: null,
+            servicio: null
+          })
+        }}
+        cita={citaDetalle}
       />
 
       <DialogCancelar
