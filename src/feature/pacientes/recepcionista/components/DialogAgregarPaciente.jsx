@@ -198,7 +198,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Aquí va el DatePicker en vez del input date */}
             <div>
-        
+
               <DatePicker
                 value={fechaNacimiento}
                 onChange={setFechaNacimiento}
@@ -256,6 +256,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               name="numeroIdentificacion"
               placeholder="Número de documento"
               value={form.numeroIdentificacion}
+              maxLength={8}
               onChange={handleChange}
               className={inputClass}
             />
@@ -264,6 +265,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
             <Input
               name="telefono"
               placeholder="Teléfono"
+              maxLength={9}
               value={form.telefono}
               onChange={handleChange}
               className={inputClass}
@@ -280,6 +282,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
             name="email"
             placeholder="Correo electrónico"
             value={form.email}
+            type="email"
             onChange={handleChange}
             className={inputClass}
           />
@@ -288,6 +291,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               name="contactoDeEmergenciaNombre"
               placeholder="Nombre de contacto de emergencia"
               value={form.contactoDeEmergenciaNombre}
+              maxLength={9}
               onChange={handleChange}
               className={inputClass}
             />
@@ -295,6 +299,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               name="contactoDeEmergenciaTelefono"
               placeholder="Teléfono de emergencia"
               value={form.contactoDeEmergenciaTelefono}
+              maxLength={9}
               onChange={handleChange}
               className={inputClass}
             />

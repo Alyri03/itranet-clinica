@@ -113,7 +113,7 @@ export default function DialogAgregarRecepcionista({ open, onOpenChange }) {
               value={form.numeroDocumento}
               onChange={handleChange}
               required
-              maxLength={12}
+              maxLength={8}
             />
           </div>
           <div className="flex gap-2">
