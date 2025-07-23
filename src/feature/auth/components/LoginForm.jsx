@@ -30,7 +30,7 @@ export function LoginForm({ onSubmit, loading }) {
       <div className="flex w-full md:w-1/2 h-full items-center justify-center">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-sm space-y-6 px-4 sm:px-12"
+          className="w-full max-w-sm space-y-6 px-6 md:px-10 lg:px-8 xl:px-6"
         >
           <h1 className="text-4xl font-bold text-center">Inicia sesión</h1>
 

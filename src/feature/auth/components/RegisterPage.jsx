@@ -13,6 +13,8 @@ import {
 import { useTiposDocumento } from "../../pacientes/hooks/useTiposDocumento";
 
 import imgRegistro from "@/assets/imgRegistro.jpg";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function RegisterPage() {
   const [step, setStep] = useState("verify-document");
@@ -65,7 +67,7 @@ export default function RegisterPage() {
     <section className="flex h-screen w-full bg-white">
       {/* Ilustración izquierda */}
       <div className="hidden md:flex w-1/2 h-full items-center justify-center bg-white">
-        <div className="bg-[#e4e9f5] rounded-3xl w-[85%] h-[92%] flex items-end justify-center overflow-hidden">
+        <div className="bg-[#e3efff] rounded-3xl w-[85%] h-[92%] flex items-end justify-center overflow-hidden">
           <img
             src={imgRegistro}
             alt="Registro Ilustración"
@@ -76,10 +78,14 @@ export default function RegisterPage() {
 
       {/* Formulario (todos los pasos) */}
       <div className="flex w-full md:w-1/2 h-full items-center justify-center">
-        <div className="w-full max-w-2xl bg-white rounded-xl p-8">
+        <div className="w-full max-w-2xl bg-white rounded-xl p-8 mb-10">
           {/* Paso 1: Verificar documento */}
           {step === "verify-document" && (
             <>
+              <Link to="/login" className="text-sm text-gray-500 flex items-center gap-1 pb-5">
+                <ArrowLeft className="" />
+                <p>Volver al login</p>
+              </Link>
               <h1 className="text-3xl font-bold text-center mb-6">
                 Verifica tu documento
               </h1>

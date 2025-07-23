@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import { useRegistroCompleto } from "../hooks/useRegistroCompleto";
 import { format } from "date-fns";
+import { ArrowLeft } from "lucide-react";
 
 export default function RegistroCompleto({ initialData }) {
   const navigate = useNavigate();
@@ -78,9 +79,10 @@ export default function RegistroCompleto({ initialData }) {
 
   return (
     <section className="flex items-center justify-center min-h-screen px-4 bg-white">
-      <div className="w-full max-w-xl space-y-6">
-        <Link to="/login" className="text-sm text-gray-500 underline">
-          Volver al login
+      <div className="w-full max-w-xl space-y-6 mb-5">
+        <Link to="/login" className="text-sm text-gray-500 flex items-center gap-1">
+          <ArrowLeft className="" />
+          <p>Volver al login</p>
         </Link>
         <h1 className="text-3xl font-bold text-center">Registro completo</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,7 +90,7 @@ export default function RegistroCompleto({ initialData }) {
           {(tipoDocumentoNombre || numeroDocumento) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-md font-medium text-gray-700 mb-1">
                   Tipo de documento
                 </label>
                 <Input
@@ -99,7 +101,7 @@ export default function RegistroCompleto({ initialData }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-md font-medium text-gray-700 mb-1">
                   N° Documento
                 </label>
                 <Input
@@ -112,88 +114,131 @@ export default function RegistroCompleto({ initialData }) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              name="nombres"
-              placeholder="Nombres"
-              value={form.nombres}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="apellidos"
-              placeholder="Apellidos"
-              value={form.apellidos}
-              onChange={handleChange}
-              required
-            />
+          {/* Campos editables */}
+          <div className="grid grid-cols-1 gap-4 ">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha de nacimiento
+              <label className="block text-md font-medium text-gray-700 mb-1">
+                Cuenta
               </label>
-              <DatePicker
-                value={fechaNacimiento}
-                onChange={setFechaNacimiento}
-                placeholder="Selecciona fecha"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  name="email"
+                  placeholder="Correo electrónico"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  name="password"
+                  type="password"
+                  placeholder="Contraseña"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  minlength={8}
+                />
+                <Input
+                  name="modalidadAtencion"
+                  placeholder="Modalidad de atención"
+                  value={form.modalidadAtencion}
+                  onChange={handleChange}
+                  required
+                  maxlength={20}
+                  minlength={3}
+                />
+              </div>
             </div>
-            <Input
-              name="sexo"
-              placeholder="Sexo"
-              value={form.sexo}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="telefono"
-              placeholder="Teléfono"
-              value={form.telefono}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="direccion"
-              placeholder="Dirección"
-              value={form.direccion}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="modalidadAtencion"
-              placeholder="Modalidad de atención"
-              value={form.modalidadAtencion}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="contactoEmergenciaNombre"
-              placeholder="Nombre contacto de emergencia"
-              value={form.contactoEmergenciaNombre}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="contactoEmergenciaTelefono"
-              placeholder="Teléfono contacto emergencia"
-              value={form.contactoEmergenciaTelefono}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="email"
-              placeholder="Correo electrónico"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="password"
-              type="password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+        
+            <div>
+              <label className="block text-md font-medium text-gray-700 mb-1">
+                Datos personales
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  name="nombres"
+                  placeholder="Nombres"
+                  value={form.nombres}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  name="apellidos"
+                  placeholder="Apellidos"
+                  value={form.apellidos}
+                  onChange={handleChange}
+                  required
+                />
+
+
+                <Input
+                  name="telefono"
+                  placeholder="Teléfono"
+                  value={form.telefono}
+                  onChange={handleChange}
+                  required
+                  maxlength={9}
+                  minlength={9}
+                />
+                <Input
+                  name="direccion"
+                  placeholder="Dirección"
+                  value={form.direccion}
+                  onChange={handleChange}
+                  required
+                  maxlength={100}
+                  minlength={5}
+                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de nacimiento
+                  </label>
+                  <DatePicker
+                    value={fechaNacimiento}
+                    onChange={setFechaNacimiento}
+                    placeholder="Selecciona fecha"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Género
+                  </label>
+                  <Input
+                    name="sexo"
+                    placeholder="Sexo"
+                    value={form.sexo}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-md font-medium text-gray-700 mb-1">
+                Contacto de emergencia
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  name="contactoEmergenciaNombre"
+                  placeholder="Nombre contacto de emergencia"
+                  value={form.contactoEmergenciaNombre}
+                  onChange={handleChange}
+                  required
+                  maxlength={50}
+                  minlength={3}
+                />
+                <Input
+                  name="contactoEmergenciaTelefono"
+                  placeholder="Teléfono contacto emergencia"
+                  value={form.contactoEmergenciaTelefono}
+                  onChange={handleChange}
+                  required
+                  maxlength={9}
+                  minlength={9}
+                />
+              </div>
+
+            </div>
           </div>
           <Button className="w-full" type="submit" disabled={isPending}>
             {isPending ? "Registrando..." : "Registrarme"}
