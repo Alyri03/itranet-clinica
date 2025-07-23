@@ -20,17 +20,19 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  UserIcon,
+  HashIcon,
+  IdCardIcon,
+  PhoneIcon,
+  MapPinIcon,
+  MailIcon,
+} from "lucide-react";
 
-export default function DialogEditarRecepcionista({
-  open,
-  onOpenChange,
-  recepcionista,
-}) {
+export default function DialogEditarRecepcionista({ open, onOpenChange, recepcionista }) {
   const { data: tiposDocumento } = useTiposDocumento();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
-
-  // Hook para obtener correo actualizado (solo cuando el modal está abierto y hay id)
   const recepId = recepcionista?.id;
   const {
     data: correoRecepcionista,
@@ -40,10 +42,9 @@ export default function DialogEditarRecepcionista({
     onError: () => toast.error("No se pudo obtener el correo"),
   });
 
-  // Hook de actualización
   const { mutate, isLoading } = useActualizarRecepcionista({
     onSuccess: () => {
-      queryClient.invalidateQueries(["recepcionistas"])
+      queryClient.invalidateQueries(["recepcionistas"]);
       toast.success("Recepcionista actualizado");
       onOpenChange(false);
     },
@@ -53,7 +54,6 @@ export default function DialogEditarRecepcionista({
     },
   });
 
-  // Estado local SOLO de los campos editables
   const [form, setForm] = useState({
     nombres: "",
     apellidos: "",
@@ -64,7 +64,6 @@ export default function DialogEditarRecepcionista({
     correo: "",
   });
 
-  // Carga datos cuando cambia el recepcionista O el correo obtenido
   useEffect(() => {
     if (recepcionista) {
       setForm({
@@ -76,7 +75,7 @@ export default function DialogEditarRecepcionista({
           : "",
         telefono: recepcionista.telefono || "",
         direccion: recepcionista.direccion || "",
-        correo: correoRecepcionista || "", // SIEMPRE desde el endpoint
+        correo: correoRecepcionista || "",
       });
     }
   }, [recepcionista, correoRecepcionista]);
@@ -111,89 +110,119 @@ export default function DialogEditarRecepcionista({
     mutate({ id: recepcionista.id, data: payload });
   };
 
+  const inputWrapper = (Icon, input) => (
+    <div className="flex items-center gap-2 border rounded-lg px-3 py-1 w-full">
+      <Icon className="w-5 h-5 text-gray-500" />
+      {input}
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Editar Recepcionista</DialogTitle>
+          <DialogTitle className="text-center text-2xl font-semibold">
+            Editar Recepcionista
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-3">
           <div className="flex gap-2">
-            <Input
-              name="nombres"
-              placeholder="Nombres"
-              value={form.nombres}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="apellidos"
-              placeholder="Apellidos"
-              value={form.apellidos}
-              onChange={handleChange}
-              required
-            />
+            {inputWrapper(UserIcon,
+              <Input
+                name="nombres"
+                placeholder="Nombres"
+                value={form.nombres}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
+            {inputWrapper(UserIcon,
+              <Input
+                name="apellidos"
+                placeholder="Apellidos"
+                value={form.apellidos}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Select
-              name="tipoDocumentoId"
-              value={form.tipoDocumentoId}
-              onValueChange={(val) => handleSelect("tipoDocumentoId", val)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de documento" />
-              </SelectTrigger>
-              <SelectContent>
-                {tiposDocumento?.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    {t.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              name="numeroDocumento"
-              placeholder="Número de documento"
-              value={form.numeroDocumento}
-              onChange={handleChange}
-              required
-              maxLength={12}
-            />
+            <div className="flex items-center gap-2 border rounded-lg px-3 py-1 w-full">
+              <IdCardIcon className="w-5 h-5 text-gray-500" />
+              <Select
+                name="tipoDocumentoId"
+                value={form.tipoDocumentoId}
+                onValueChange={(val) => handleSelect("tipoDocumentoId", val)}
+                required
+              >
+                <SelectTrigger className="border-0 focus:ring-0 w-full">
+                  <SelectValue placeholder="Tipo de documento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposDocumento?.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {inputWrapper(IdCardIcon,
+              <Input
+                name="numeroDocumento"
+                placeholder="Número de documento"
+                value={form.numeroDocumento}
+                onChange={handleChange}
+                required
+                maxLength={12}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Input
-              name="telefono"
-              placeholder="Teléfono"
-              value={form.telefono}
-              onChange={handleChange}
-              required
-              maxLength={9}
-            />
-            <Input
-              name="direccion"
-              placeholder="Dirección"
-              value={form.direccion}
-              onChange={handleChange}
-              required
-            />
+            {inputWrapper(PhoneIcon,
+              <Input
+                name="telefono"
+                placeholder="Teléfono"
+                value={form.telefono}
+                onChange={handleChange}
+                required
+                maxLength={9}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
+            {inputWrapper(MapPinIcon,
+              <Input
+                name="direccion"
+                placeholder="Dirección"
+                value={form.direccion}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div>
-            <Input
-              name="correo"
-              type="email"
-              placeholder="Correo electrónico"
-              value={
-                loadingCorreo
-                  ? "Cargando..."
-                  : errorCorreo
-                    ? "No disponible"
-                    : form.correo
-              }
-              onChange={handleChange}
-              required
-              readOnly={loadingCorreo || !!errorCorreo} // Si hay error/cargando no editable
-            />
+            {inputWrapper(MailIcon,
+              <Input
+                name="correo"
+                type="email"
+                placeholder="Correo electrónico"
+                value={
+                  loadingCorreo
+                    ? "Cargando..."
+                    : errorCorreo
+                      ? "No disponible"
+                      : form.correo
+                }
+                onChange={handleChange}
+                required
+                readOnly={loadingCorreo || !!errorCorreo}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" loading={isLoading}>
@@ -205,3 +234,4 @@ export default function DialogEditarRecepcionista({
     </Dialog>
   );
 }
+

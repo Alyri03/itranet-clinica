@@ -11,9 +11,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  UserIcon,
+  PhoneIcon,
+  MapPinIcon,
+  CalendarIcon,
+  MailIcon,
+  LockIcon,
+  IdCardIcon,
+  ClockIcon,
+} from "lucide-react";
 
 const turnos = [
   { value: "DIURNO", label: "Diurno" },
@@ -22,10 +31,10 @@ const turnos = [
 
 export default function DialogAgregarRecepcionista({ open, onOpenChange }) {
   const { data: tiposDocumento } = useTiposDocumento();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const { mutate, isLoading } = useCrearRecepcionista({
     onSuccess: () => {
-      queryClient.invalidateQueries(["recepcionistas"])
+      queryClient.invalidateQueries(["recepcionistas"]);
       toast.success("Recepcionista registrado exitosamente");
       onOpenChange(false);
     },
@@ -66,118 +75,160 @@ export default function DialogAgregarRecepcionista({ open, onOpenChange }) {
     });
   };
 
+  const inputWrapper = (Icon, input) => (
+    <div className="flex items-center gap-2 border rounded-lg px-3 py-1 w-full">
+      <Icon className="w-5 h-5 text-gray-500" />
+      {input}
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Agregar Recepcionista</DialogTitle>
+          <DialogTitle className="text-center text-2xl font-semibold">
+            Agregar Recepcionista
+          </DialogTitle>
+          <p className="text-center text-gray-500 text-sm">
+          Complete todos los campos
+          </p>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-3">
           <div className="flex gap-2">
-            <Input
-              name="nombres"
-              placeholder="Nombres"
-              value={form.nombres}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="apellidos"
-              placeholder="Apellidos"
-              value={form.apellidos}
-              onChange={handleChange}
-              required
-            />
+            {inputWrapper(UserIcon,
+              <Input
+                name="nombres"
+                placeholder="Nombres"
+                value={form.nombres}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
+            {inputWrapper(UserIcon,
+              <Input
+                name="apellidos"
+                placeholder="Apellidos"
+                value={form.apellidos}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Select
-              name="tipoDocumentoId"
-              value={form.tipoDocumentoId}
-              onValueChange={(val) => handleSelect("tipoDocumentoId", val)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de documento" />
-              </SelectTrigger>
-              <SelectContent>
-                {tiposDocumento?.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    {t.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              name="numeroDocumento"
-              placeholder="Número de documento"
-              value={form.numeroDocumento}
-              onChange={handleChange}
-              required
-              maxLength={8}
-            />
+            <div className="flex items-center gap-2 border rounded-lg px-3 py-1 w-full">
+              <IdCardIcon className="w-5 h-5 text-gray-500" />
+              <Select
+                name="tipoDocumentoId"
+                value={form.tipoDocumentoId}
+                onValueChange={(val) => handleSelect("tipoDocumentoId", val)}
+                required
+              >
+                <SelectTrigger className="border-0 focus:ring-0 w-full">
+                  <SelectValue placeholder="Tipo de documento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiposDocumento?.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {inputWrapper(IdCardIcon,
+              <Input
+                name="numeroDocumento"
+                placeholder="Número de documento"
+                value={form.numeroDocumento}
+                onChange={handleChange}
+                required
+                maxLength={8}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Input
-              name="telefono"
-              placeholder="Teléfono"
-              value={form.telefono}
-              onChange={handleChange}
-              required
-              maxLength={9}
-            />
-            <Input
-              name="direccion"
-              placeholder="Dirección"
-              value={form.direccion}
-              onChange={handleChange}
-              required
-            />
+            {inputWrapper(PhoneIcon,
+              <Input
+                name="telefono"
+                placeholder="Teléfono"
+                value={form.telefono}
+                onChange={handleChange}
+                required
+                maxLength={9}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
+            {inputWrapper(MapPinIcon,
+              <Input
+                name="direccion"
+                placeholder="Dirección"
+                value={form.direccion}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Select
-              name="turnoTrabajo"
-              value={form.turnoTrabajo}
-              onValueChange={(val) => handleSelect("turnoTrabajo", val)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Turno de trabajo" />
-              </SelectTrigger>
-              <SelectContent>
-                {turnos.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              name="fechaContratacion"
-              type="date"
-              placeholder="Fecha de contratación"
-              value={form.fechaContratacion}
-              onChange={handleChange}
-              required
-            />
+            <div className="flex items-center gap-2 border rounded-lg px-3 py-1 w-full">
+              <ClockIcon className="w-5 h-5 text-gray-500" />
+              <Select
+                name="turnoTrabajo"
+                value={form.turnoTrabajo}
+                onValueChange={(val) => handleSelect("turnoTrabajo", val)}
+                required
+              >
+                <SelectTrigger className="border-0 focus:ring-0 w-full">
+                  <SelectValue placeholder="Turno de trabajo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {turnos.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {inputWrapper(CalendarIcon,
+              <Input
+                name="fechaContratacion"
+                type="date"
+                placeholder="Fecha de contratación"
+                value={form.fechaContratacion}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <div className="flex gap-2">
-            <Input
-              name="correo"
-              type="email"
-              placeholder="Correo electrónico"
-              value={form.correo}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="password"
-              type="password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-            />
+            {inputWrapper(MailIcon,
+              <Input
+                name="correo"
+                type="email"
+                placeholder="Correo electrónico"
+                value={form.correo}
+                onChange={handleChange}
+                required
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
+            {inputWrapper(LockIcon,
+              <Input
+                name="password"
+                type="password"
+                placeholder="Contraseña"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                className="border-0 focus-visible:ring-0"
+              />
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" loading={isLoading}>
