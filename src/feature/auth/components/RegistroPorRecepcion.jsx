@@ -80,7 +80,10 @@ export default function RegistroCompleto({ initialData }) {
   return (
     <section className="flex items-center justify-center min-h-screen px-4 bg-white">
       <div className="w-full max-w-xl space-y-6 mb-5">
-        <Link to="/login" className="text-sm text-gray-500 flex items-center gap-1">
+        <Link
+          to="/login"
+          className="text-sm text-gray-500 flex items-center gap-1"
+        >
           <ArrowLeft className="" />
           <p>Volver al login</p>
         </Link>
@@ -148,7 +151,7 @@ export default function RegistroCompleto({ initialData }) {
                 />
               </div>
             </div>
-        
+
             <div>
               <label className="block text-md font-medium text-gray-700 mb-1">
                 Datos personales
@@ -168,7 +171,6 @@ export default function RegistroCompleto({ initialData }) {
                   onChange={handleChange}
                   required
                 />
-
 
                 <Input
                   name="telefono"
@@ -237,7 +239,6 @@ export default function RegistroCompleto({ initialData }) {
                   minlength={9}
                 />
               </div>
-
             </div>
           </div>
           <Button className="w-full" type="submit" disabled={isPending}>
