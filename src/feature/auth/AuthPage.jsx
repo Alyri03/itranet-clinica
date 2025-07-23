@@ -26,7 +26,6 @@ export default function AuthPage() {
         return;
       }
 
-      // ⚠️ Normaliza rol para el frontend
       const adaptedRole =
         {
           ADMIN: "ADMINISTRADOR",
@@ -54,13 +53,13 @@ export default function AuthPage() {
               adaptedUser.usuarioId
             );
             pacienteId = profile?.id ?? null;
-            console.log("✅ Perfil PACIENTE:", profile);
+            console.log("Perfil PACIENTE:", profile);
             break;
 
           case "MEDICO":
             profile = await getProfileMedicoByUsuarioId(adaptedUser.usuarioId);
             medicoId = profile?.id ?? null;
-            console.log("✅ Perfil MÉDICO:", profile);
+            console.log("Perfil MÉDICO:", profile);
             break;
 
           case "RECEPCIONISTA":
@@ -68,7 +67,7 @@ export default function AuthPage() {
               adaptedUser.usuarioId
             );
             recepcionistaId = profile?.id ?? null;
-            console.log("✅ Perfil RECEPCIONISTA:", profile);
+            console.log("Perfil RECEPCIONISTA:", profile);
             break;
 
           case "ADMINISTRADOR":
@@ -76,11 +75,11 @@ export default function AuthPage() {
               adaptedUser.usuarioId
             );
             adminId = profile?.id ?? null;
-            console.log("✅ Perfil ADMINISTRADOR:", profile);
+            console.log("Perfil ADMINISTRADOR:", profile);
             break;
         }
       } catch (error) {
-        console.error("❌ Error al obtener perfil:", error);
+        console.error("Error al obtener perfil:", error);
         toast.error("Error al obtener perfil: " + error.message);
       }
 
@@ -92,7 +91,7 @@ export default function AuthPage() {
       });
 
       console.log(
-        "📦 Estado de store después de login:",
+        "Estado de store después de login:",
         useAuthStore.getState()
       );
 

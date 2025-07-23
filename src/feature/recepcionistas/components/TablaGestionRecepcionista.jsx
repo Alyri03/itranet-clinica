@@ -11,10 +11,13 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 import DialogAgregarRecepcionista from "./DialogAgregarRecepcionista";
 import DialogEditarRecepcionista from "./DialogEditarRecepcionista";
 import DialogEliminarRecepcionista from "./DialogEliminarRecepcionista";
+import { getInitials } from "../../../utils/Avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function TablaGestionRecepcionista() {
   const [openAgregar, setOpenAgregar] = useState(false);
@@ -23,21 +26,34 @@ export default function TablaGestionRecepcionista() {
 
   const { data: recepcionistas, isLoading } = useRecepcionistas();
   const { data: tiposDocumento } = useTiposDocumento();
-
   const queryClient = useQueryClient();
 
-  // Función para buscar el nombre del tipo de documento por id
   const getTipoDocumento = (id) => {
     if (!tiposDocumento) return "-";
     const tipo = tiposDocumento.find((t) => t.id === id);
     return tipo ? tipo.nombre : "-";
   };
 
-  // Función que se pasa al dialog de eliminar, para refrescar tabla al eliminar
   const handleEliminarSuccess = () => {
     setEliminando(null);
-    // Refresca la tabla
     queryClient.invalidateQueries(["recepcionistas"]);
+  };
+
+  // Badge de turno bonito
+  const getTurnoBadge = (turno) => {
+    if (!turno) return <Badge variant="outline">—</Badge>;
+    const t = turno.toLowerCase();
+    if (t === "diurno") return (
+      <Badge className="bg-green-100 text-green-700 border-green-200">
+        Diurno
+      </Badge>
+    );
+    if (t === "nocturno") return (
+      <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+        Nocturno
+      </Badge>
+    );
+    return <Badge variant="secondary">{turno}</Badge>;
   };
 
   if (isLoading) return <div>Cargando...</div>;
@@ -51,20 +67,12 @@ export default function TablaGestionRecepcionista() {
         </Button>
       </div>
 
-      {/* Diálogo para agregar */}
-      <DialogAgregarRecepcionista
-        open={openAgregar}
-        onOpenChange={setOpenAgregar}
-      />
-
-      {/* Diálogo para editar */}
+      <DialogAgregarRecepcionista open={openAgregar} onOpenChange={setOpenAgregar} />
       <DialogEditarRecepcionista
         open={!!editando}
         onOpenChange={() => setEditando(null)}
         recepcionista={editando}
       />
-
-      {/* Diálogo para eliminar */}
       <DialogEliminarRecepcionista
         open={!!eliminando}
         onOpenChange={() => setEliminando(null)}
@@ -88,7 +96,16 @@ export default function TablaGestionRecepcionista() {
           {recepcionistas?.map((r) => (
             <TableRow key={r.id}>
               <TableCell>
-                {r.nombres} {r.apellidos}
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-9 h-9">
+                    <AvatarFallback className="bg-orange-400 text-white font-bold">
+                      {getInitials(r.nombres, r.apellidos)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>
+                    {r.nombres} {r.apellidos}
+                  </span>
+                </div>
               </TableCell>
               <TableCell>
                 <div className="font-semibold">
@@ -101,9 +118,7 @@ export default function TablaGestionRecepcionista() {
               <TableCell>{r.telefono}</TableCell>
               <TableCell>{r.direccion}</TableCell>
               <TableCell>
-                <span className="capitalize">
-                  {r.turnoTrabajo?.toLowerCase()}
-                </span>
+                {getTurnoBadge(r.turnoTrabajo)}
               </TableCell>
               <TableCell>
                 {new Date(r.fechaContratacion).toLocaleDateString()}

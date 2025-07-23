@@ -9,12 +9,15 @@ export function useCrearCita(onSuccessCallback) {
   return useMutation({
     mutationFn: crearCita,
     onSuccess: (data, variables) => {
-      toast.success("Cita registrada correctamente ✅");
+      toast.success("Cita registrada correctamente");
       queryClient.invalidateQueries({ queryKey: ["citas"] });
 
       if (variables?.medicoId) {
         queryClient.invalidateQueries({
           queryKey: ["bloquesPorMedico", variables.medicoId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["citas-confirmadas-medico", variables.medicoId],
         });
       }
       if (variables?.pacienteId) {
@@ -24,9 +27,10 @@ export function useCrearCita(onSuccessCallback) {
       }
       if (onSuccessCallback) onSuccessCallback(data);
     },
+
     onError: (error) => {
       console.error("Error al crear cita:", error);
-      toast.error("No se pudo registrar la cita ❌");
+      toast.error("No se pudo registrar la cita");
     },
   });
 }

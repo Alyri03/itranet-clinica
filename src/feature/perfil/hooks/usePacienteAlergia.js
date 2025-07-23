@@ -8,7 +8,6 @@ import {
   deletePacienteAlergia,
 } from "../api/pacienteAlergiaApi";
 
-// Listar TODAS las relaciones paciente-alergia
 export function useAllPacienteAlergias(options = {}) {
   return useQuery({
     queryKey: ["pacienteAlergias"],
@@ -17,7 +16,6 @@ export function useAllPacienteAlergias(options = {}) {
   });
 }
 
-// Listar alergias de un paciente por su ID
 export function usePacienteAlergiasByPacienteId(pacienteId, options = {}) {
   return useQuery({
     queryKey: ["pacienteAlergias", pacienteId],
@@ -27,7 +25,6 @@ export function usePacienteAlergiasByPacienteId(pacienteId, options = {}) {
   });
 }
 
-// Obtener una relación paciente-alergia por ID
 export function usePacienteAlergiaById(id, options = {}) {
   return useQuery({
     queryKey: ["pacienteAlergia", id],
@@ -37,66 +34,57 @@ export function usePacienteAlergiaById(id, options = {}) {
   });
 }
 
-// Mutación: Crear paciente-alergia
 export function useCrearPacienteAlergia(options = {}) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createPacienteAlergia,
-    onSuccess: (...params) => {
-      queryClient.invalidateQueries(["pacienteAlergias"]);
-      // 👇 Invalidar todas las queries por pacienteId activas
-      queryClient.invalidateQueries({ queryKey: ["pacienteAlergias"] });
-      if (params[0]?.pacienteId) {
-        queryClient.invalidateQueries([
-          "pacienteAlergias",
-          params[0].pacienteId,
-        ]);
+    onSuccess: (data, variables, context) => {
+      // variables debe incluir pacienteId (es el payload del mutation)
+      const pacienteId = variables?.pacienteId;
+      // Solo refresca la query específica de ese paciente
+      if (pacienteId) {
+        queryClient.invalidateQueries(["pacienteAlergias", pacienteId]);
       }
-      options.onSuccess && options.onSuccess(...params);
+      // Refresca también el perfil del usuario
+      queryClient.invalidateQueries(["user-profile"]);
+      options.onSuccess && options.onSuccess(data, variables, context);
     },
     ...options,
   });
 }
 
-// Mutación: Eliminar paciente-alergia
 export function useEliminarPacienteAlergia(options = {}) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deletePacienteAlergia,
-    onSuccess: (...params) => {
-      queryClient.invalidateQueries(["pacienteAlergias"]);
-      // 👇 Si tienes el pacienteId aquí, invalidalo también
-      if (params[0]?.pacienteId) {
-        queryClient.invalidateQueries([
-          "pacienteAlergias",
-          params[0].pacienteId,
-        ]);
+    onSuccess: (data, variables, context) => {
+      // Si deletePacienteAlergia espera un ID, pásale también pacienteId en variables (segundo param)
+      const pacienteId = variables?.pacienteId;
+      if (pacienteId) {
+        queryClient.invalidateQueries(["pacienteAlergias", pacienteId]);
       } else {
-        // O simplemente invalida todos los de pacienteAlergias (más general)
+        // fallback, por si acaso
         queryClient.invalidateQueries({ queryKey: ["pacienteAlergias"] });
       }
-      options.onSuccess && options.onSuccess(...params);
+      queryClient.invalidateQueries(["user-profile"]);
+      options.onSuccess && options.onSuccess(data, variables, context);
     },
     ...options,
   });
 }
 
-// Mutación: Actualizar paciente-alergia
 export function useActualizarPacienteAlergia(options = {}) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, pacienteAlergia }) =>
       updatePacienteAlergia(id, pacienteAlergia),
-    onSuccess: (...params) => {
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
         queryKey: ["pacienteAlergias"],
         exact: false,
       });
-      queryClient.invalidateQueries({
-        queryKey: ["user-profile"],
-        exact: false,
-      });
-      options.onSuccess && options.onSuccess(...params);
+      queryClient.invalidateQueries(["user-profile"]);
+      options.onSuccess && options.onSuccess(data, variables, context);
     },
     ...options,
   });

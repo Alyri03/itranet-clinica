@@ -7,7 +7,7 @@ export const usePacientesDeUnMedico = (medicoId) => {
     queryFn: () => getPacientesPorMedico(medicoId),
     enabled: !!medicoId,
     onSuccess: () => {
-      console.log("✅ Pacientes del médico cargados correctamente");
+      console.log("Pacientes del médico cargados correctamente");
     },
     onError: (error) => {
       console.error("❌ Error al obtener pacientes del médico:", error);

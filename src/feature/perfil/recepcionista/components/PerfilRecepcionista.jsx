@@ -94,7 +94,6 @@ export default function PerfilRecepcionista() {
 
   return (
     <main className="p-6 space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight">Perfil del Recepcionista</h1>
       <header className="flex flex-col sm:flex-row items-center gap-4">
         <Avatar className="h-20 w-20">
           <AvatarFallback className="h-full w-full rounded-full bg-orange-400 text-white text-xl font-bold flex items-center justify-center">

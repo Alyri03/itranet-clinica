@@ -15,6 +15,7 @@ import { useEnviarResultado } from "../hooks/useEnviarResultado";
 import { useAtenderCita } from "../../citas/hooks/useAtenderCita";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAtencionStore } from "@/store/atencionStore"; // <-- Importa el store
 
 export default function RegistroAtencion({ cita }) {
   const { citaId } = useParams();
@@ -22,17 +23,26 @@ export default function RegistroAtencion({ cita }) {
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
+  const finalizarAtencion = useAtencionStore((s) => s.finalizarAtencion); // <-- Usa el hook del store
+
+  // Útil para asegurar persistencia del cambio en el store antes de navegar
+  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
   const atenderCita = useAtenderCita({
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries(["PacientesDeUnMedico", cita.medicoId]);
       toast.success("Atención finalizada correctamente");
       setOpen(false);
-      navigate("/agenda");  // <-- Navega a agenda
+      finalizarAtencion(); // <-- Cambia el estado del store
+      await delay(60); // Espera para persistencia localStorage
+      navigate("/agenda");
     },
-    onError: (err) => {
+    onError: async (err) => {
       toast.error("Error al marcar como atendida");
       console.error("❌ Error al marcar como atendida", err);
+      finalizarAtencion();
+      await delay(60);
+      navigate("/agenda");
     },
   });
 
@@ -41,9 +51,12 @@ export default function RegistroAtencion({ cita }) {
       toast.success("Resultado enviado correctamente");
       atenderCita.mutate(citaId);
     },
-    onError: (err) => {
+    onError: async (err) => {
       toast.error("Error al enviar resultado");
       console.error("❌ Error al enviar resultado", err);
+      finalizarAtencion(); // Asegura liberar el flag también aquí
+      await delay(60);
+      navigate("/agenda");
     },
   });
 

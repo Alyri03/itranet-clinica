@@ -84,7 +84,6 @@ export default function TablaGestionMedicos() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Listado de Médicos</h2>
         <Button onClick={() => setOpenCrear(true)}>
           <UserPlus size={18} className="mr-2" />
           Nuevo Médico

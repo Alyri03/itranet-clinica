@@ -1,11 +1,29 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/DatePicker"; // <--- usa tu componente aquí
+import { DatePicker } from "@/components/ui/DatePicker";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import { useRegistroCompleto } from "../hooks/useRegistroCompleto";
 import { format } from "date-fns";
+import { ArrowLeft } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+
+const SEXOS = [
+  { value: "MASCULINO", label: "Masculino" },
+  { value: "FEMENINO", label: "Femenino" },
+];
+
+const MODALIDADES = [
+  { value: "PARTICULAR", label: "Particular" },
+  { value: "SEGURO", label: "Seguro" },
+];
 
 export default function RegistroCompleto({ initialData }) {
   const navigate = useNavigate();
@@ -27,7 +45,6 @@ export default function RegistroCompleto({ initialData }) {
   const numeroDocumento =
     initialData?.numeroDocumento || initialData?.documentNumber || "";
 
-  // Estado para DatePicker y form
   const [fechaNacimiento, setFechaNacimiento] = useState(null);
 
   const [form, setForm] = useState({
@@ -48,7 +65,6 @@ export default function RegistroCompleto({ initialData }) {
     numeroPoliza: null,
   });
 
-  // Si initialData cambia, sincroniza
   useEffect(() => {
     if (initialData) {
       setForm((prev) => ({
@@ -59,7 +75,6 @@ export default function RegistroCompleto({ initialData }) {
     }
   }, [initialData]);
 
-  // Sincroniza la fecha cuando cambia el datepicker
   useEffect(() => {
     if (fechaNacimiento) {
       setForm((prev) => ({
@@ -81,13 +96,19 @@ export default function RegistroCompleto({ initialData }) {
 
   return (
     <section className="flex items-center justify-center min-h-screen px-4 bg-white">
-      <div className="w-full max-w-xl space-y-6">
-        <Link to="/login" className="text-sm text-gray-500 underline">
-          Volver al login
-        </Link>
-        <h1 className="text-3xl font-bold text-center">Registro completo</h1>
+      <div className="w-full max-w-xl space-y-6 flex flex-col">
+        {/* Flecha y volver */}
+        <div className="flex items-center gap-2 mb-1">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-gray-700 hover:underline"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Volver al login</span>
+          </Link>
+        </div>
 
-        {/* Mostrar los campos bloqueados SOLO si hay initialData */}
+        <h1 className="text-3xl font-bold text-center">Registro completo</h1>
         {(tipoDocumentoNombre || numeroDocumento) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -117,6 +138,7 @@ export default function RegistroCompleto({ initialData }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nombres y Apellidos */}
             <Input
               name="nombres"
               placeholder="Nombres"
@@ -131,8 +153,7 @@ export default function RegistroCompleto({ initialData }) {
               onChange={handleChange}
               required
             />
-
-            {/* DatePicker aquí */}
+            {/* Fecha de nacimiento y Sexo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Fecha de nacimiento
@@ -145,14 +166,27 @@ export default function RegistroCompleto({ initialData }) {
                 maxYear={new Date().getFullYear()}
               />
             </div>
-
-            <Input
-              name="sexo"
-              placeholder="Sexo"
-              value={form.sexo}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sexo
+              </label>
+              <Select
+                value={form.sexo}
+                onValueChange={(v) => setForm((prev) => ({ ...prev, sexo: v }))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona sexo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SEXOS.map((op) => (
+                    <SelectItem key={op.value} value={op.value}>
+                      {op.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Teléfono y Dirección */}
             <Input
               name="telefono"
               placeholder="Teléfono"
@@ -167,20 +201,38 @@ export default function RegistroCompleto({ initialData }) {
               onChange={handleChange}
               required
             />
+            {/* Modalidad de atención y Nombre contacto de emergencia */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Modalidad de atención
+              </label>
+              <Select
+                value={form.modalidadAtencion}
+                onValueChange={(v) =>
+                  setForm((prev) => ({ ...prev, modalidadAtencion: v }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona modalidad" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODALIDADES.map((op) => (
+                    <SelectItem key={op.value} value={op.value}>
+                      {op.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Input
-              name="modalidadAtencion"
-              placeholder="Modalidad de atención"
-              value={form.modalidadAtencion}
-              onChange={handleChange}
-              required
-            />
-            <Input
+              className="mt-6"
               name="contactoEmergenciaNombre"
               placeholder="Nombre contacto de emergencia"
               value={form.contactoEmergenciaNombre}
               onChange={handleChange}
               required
             />
+            {/* Teléfono contacto emergencia y Correo electrónico */}
             <Input
               name="contactoEmergenciaTelefono"
               placeholder="Teléfono contacto emergencia"
@@ -195,6 +247,7 @@ export default function RegistroCompleto({ initialData }) {
               onChange={handleChange}
               required
             />
+            {/* Contraseña ocupa las dos columnas */}
             <Input
               name="password"
               type="password"
@@ -202,6 +255,7 @@ export default function RegistroCompleto({ initialData }) {
               value={form.password}
               onChange={handleChange}
               required
+              className="md:col-span-2"
             />
           </div>
           <Button className="w-full" type="submit" disabled={isPending}>

@@ -67,6 +67,15 @@ export default function HistorialPaciente({ pacienteId }) {
 
   const resultados = parseResultados(resultadosRaw);
 
+  const historialVacio =
+    !historialRaw ||
+    (Array.isArray(historialRaw) && historialRaw.length === 0) ||
+    (typeof historialRaw === "object" &&
+      !Array.isArray(historialRaw) &&
+      Object.keys(historialRaw).length === 0);
+
+  const resultadosVacio = resultados.length === 0;
+
   const historialFechaMap = React.useMemo(() => {
     if (Array.isArray(historialRaw)) {
       return Object.fromEntries(
@@ -88,34 +97,30 @@ export default function HistorialPaciente({ pacienteId }) {
 
   const fallbackFecha = Object.values(historialFechaMap)[0];
 
-  const [resultadoSeleccionado, setResultadoSeleccionado] = React.useState(null);
+  const [resultadoSeleccionado, setResultadoSeleccionado] =
+    React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   // PAGINACION
   const [paginaActual, setPaginaActual] = React.useState(1);
   const resultadosPorPagina = 5;
 
+  const resultadosPagina = Array.isArray(resultados)
+    ? resultados.slice(
+        (paginaActual - 1) * resultadosPorPagina,
+        paginaActual * resultadosPorPagina
+      )
+    : [];
+
   const totalPaginas = Math.ceil(resultados.length / resultadosPorPagina);
 
-  // Obtener resultados solo de la página actual
-  const resultadosPagina = resultados.slice(
-    (paginaActual - 1) * resultadosPorPagina,
-    paginaActual * resultadosPorPagina
-  );
-
-  if (loadingHistorial || loadingResultados)
-    return <p className="text-sm">Cargando historial y resultados...</p>;
-
-  if (errorHistorial)
-    return (
-      <p className="text-sm text-red-600">Error al cargar historial clínico.</p>
-    );
-
-  if (errorResultados)
-    return <p className="text-sm text-red-600">Error al cargar resultados.</p>;
-
-  if (!resultados.length)
-    return <p className="text-sm">No hay resultados para mostrar.</p>;
+  const mostrarVacio =
+    (!loadingHistorial &&
+      !loadingResultados &&
+      !resultados.length &&
+      historialVacio) ||
+    errorHistorial ||
+    errorResultados;
 
   return (
     <Card className="w-full h-full flex flex-col border-0 shadow-lg bg-white/90 rounded-lg">
@@ -129,112 +134,138 @@ export default function HistorialPaciente({ pacienteId }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-8 py-8 flex-1 flex flex-col">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead className="w-[150px] text-xs font-semibold text-gray-700">
-                Fecha
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-gray-700">
-                Diagnóstico
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-gray-700 text-right">
-                Acciones
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {resultadosPagina.map((resultado) => {
-              const fecha =
-                historialFechaMap[resultado.historialClinicoId] ||
-                fallbackFecha ||
-                null;
+        {(loadingHistorial || loadingResultados) && (
+          <p className="text-sm text-gray-400 text-center py-8">
+            Cargando historial y resultados...
+          </p>
+        )}
 
-              return (
-                <TableRow
-                  key={resultado.id}
-                  className="hover:bg-blue-50 transition-colors duration-200"
+        {mostrarVacio && (
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-gray-400 text-base text-center select-none">
+              No hay historial ni resultados para este paciente.
+            </span>
+          </div>
+        )}
+
+        {!loadingHistorial &&
+          !loadingResultados &&
+          !errorHistorial &&
+          !errorResultados &&
+          resultados.length > 0 && (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="w-[150px] text-xs font-semibold text-gray-700">
+                      Fecha
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-700">
+                      Diagnóstico
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-700 text-right">
+                      Acciones
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(resultadosPagina) &&
+                    resultadosPagina.map((resultado) => {
+                      const fecha =
+                        historialFechaMap[resultado.historialClinicoId] ||
+                        fallbackFecha ||
+                        null;
+
+                      return (
+                        <TableRow
+                          key={resultado.id}
+                          className="hover:bg-blue-50 transition-colors duration-200"
+                        >
+                          <TableCell className="font-medium flex items-center gap-2 text-xs text-gray-800">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            {fecha ? (
+                              formatearFecha(fecha)
+                            ) : (
+                              <span className="text-gray-400 italic">
+                                Sin fecha
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs text-gray-700">
+                            {resultado.diagnostico}
+                          </TableCell>
+                          <TableCell className="text-xs text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                setResultadoSeleccionado(resultado);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver detalle
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+              {/* PAGINACIÓN */}
+              <div className="mt-4 flex justify-center items-center gap-4">
+                <Button
+                  disabled={paginaActual === 1}
+                  onClick={() => setPaginaActual((p) => p - 1)}
                 >
-                  <TableCell className="font-medium flex items-center gap-2 text-xs text-gray-800">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    {fecha ? (
-                      formatearFecha(fecha)
-                    ) : (
-                      <span className="text-gray-400 italic">Sin fecha</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs text-gray-700">
-                    {resultado.diagnostico}
-                  </TableCell>
-                  <TableCell className="text-xs text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      onClick={() => {
-                        setResultadoSeleccionado(resultado);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver detalle
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        {/* PAGINACIÓN */}
-        <div className="mt-4 flex justify-center items-center gap-4">
-          <Button
-            disabled={paginaActual === 1}
-            onClick={() => setPaginaActual((p) => p - 1)}
-          >
-            Anterior
-          </Button>
-          <span>
-            Página {paginaActual} de {totalPaginas}
-          </span>
-          <Button
-            disabled={paginaActual === totalPaginas}
-            onClick={() => setPaginaActual((p) => p + 1)}
-          >
-            Siguiente
-          </Button>
-        </div>
-      </CardContent>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Resultado Detallado
-            </DialogTitle>
-            <DialogClose />
-          </DialogHeader>
-          {resultadoSeleccionado && (
-            <div className="space-y-2 text-sm text-gray-700">
-              <div>
-                <strong>Diagnóstico:</strong> {resultadoSeleccionado.diagnostico}
+                  Anterior
+                </Button>
+                <span>
+                  Página {paginaActual} de {totalPaginas}
+                </span>
+                <Button
+                  disabled={paginaActual === totalPaginas}
+                  onClick={() => setPaginaActual((p) => p + 1)}
+                >
+                  Siguiente
+                </Button>
               </div>
-              <div>
-                <strong>Tratamiento:</strong>{" "}
-                {resultadoSeleccionado.tratamiento || "No registrado"}
-              </div>
-              <div>
-                <strong>Notas:</strong>{" "}
-                {resultadoSeleccionado.notasResultado || "No registrado"}
-              </div>
-              <div>
-                <strong>Cita ID:</strong>{" "}
-                {resultadoSeleccionado.citaId || "No registrado"}
-              </div>
-            </div>
+            </>
           )}
-        </DialogContent>
-      </Dialog>
+
+        {/* Dialog para detalle */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold text-gray-900">
+                Resultado Detallado
+              </DialogTitle>
+              <DialogClose />
+            </DialogHeader>
+            {resultadoSeleccionado && (
+              <div className="space-y-2 text-sm text-gray-700">
+                <div>
+                  <strong>Diagnóstico:</strong>{" "}
+                  {resultadoSeleccionado.diagnostico}
+                </div>
+                <div>
+                  <strong>Tratamiento:</strong>{" "}
+                  {resultadoSeleccionado.tratamiento || "No registrado"}
+                </div>
+                <div>
+                  <strong>Notas:</strong>{" "}
+                  {resultadoSeleccionado.notasResultado || "No registrado"}
+                </div>
+                <div>
+                  <strong>Cita ID:</strong>{" "}
+                  {resultadoSeleccionado.citaId || "No registrado"}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </CardContent>
     </Card>
   );
 }

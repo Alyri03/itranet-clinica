@@ -74,7 +74,6 @@ export default function PerfilPaciente() {
 
   return (
     <main className="p-6 space-y-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight">Perfil del Paciente</h1>
       <header className="flex flex-col sm:flex-row items-center gap-4">
         <Avatar className="h-24 w-24">
           <AvatarFallback className="h-full w-full rounded-full bg-blue-600 text-white text-2xl font-bold flex items-center justify-center">

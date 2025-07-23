@@ -29,7 +29,6 @@ export default function PerfilMedico() {
 
   return (
     <main className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-2">Perfil del Médico</h1>
       <header className="flex flex-col sm:flex-row items-center gap-4">
         <Avatar className="h-20 w-20">
           <AvatarFallback className="bg-purple-700 text-white text-2xl font-bold flex items-center justify-center">

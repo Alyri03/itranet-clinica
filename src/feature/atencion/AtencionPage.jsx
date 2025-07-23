@@ -13,66 +13,87 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function AtencionPage() {
   const { pacienteId, citaId } = useParams();
-  const finalizarAtencion = useAtencionStore((s) => s.finalizarAtencion);
   const enAtencion = useAtencionStore((s) => s.enAtencion);
+  const [waitingRedirect, setWaitingRedirect] = useState(false);
 
-  console.log(
-    "%c[AtencionPage] enAtencion:",
-    "color: blue; font-weight: bold;",
-    enAtencion
-  );
-
-  const [secondsLeft, setSecondsLeft] = useState(30); // SOLO PARA PRUEBAS: 30s
+  const [secondsLeft, setSecondsLeft] = useState(3600);
   const intervalRef = useRef();
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Mutaciones para enviar resultado y finalizar cita
+  // --- Utilidad para delay
+  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+  // --- Mutaciones para enviar resultado y finalizar cita ---
   const enviarResultado = useEnviarResultado({
-    onSuccess: () => {
+    onSuccess: async () => {
       console.log(
         "%c[AtencionPage] Resultado enviado automáticamente",
         "color: green;"
       );
       atenderCita.mutate(citaId);
     },
-    onError: (err) => {
+    onError: async (err) => {
       toast.error("Error al guardar el resultado automático");
       console.error(err);
-      finalizarAtencion(); // forzamos liberar estado aunque falle
+      useAtencionStore.getState().finalizarAtencion();
+      setWaitingRedirect(true);
+      await delay(50);
       console.log(
         "%c[AtencionPage] finalizarAtencion llamado por error en enviar resultado",
         "color: orange;"
       );
-      navigate("/agenda");
+      // NO navigate aquí
     },
   });
 
   const atenderCita = useAtenderCita({
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries();
       toast.success("Atención finalizada automáticamente");
-      finalizarAtencion(); // libera flag
+      useAtencionStore.getState().finalizarAtencion();
+      setWaitingRedirect(true);
+      await delay(50);
       console.log(
         "%c[AtencionPage] finalizarAtencion llamado por éxito en marcar cita atendida",
         "color: orange;"
       );
-      navigate("/agenda");
+      // NO navigate aquí
     },
-    onError: (err) => {
+    onError: async (err) => {
       toast.error("Error al marcar cita como atendida");
       console.error(err);
-      finalizarAtencion(); // libera flag
+      useAtencionStore.getState().finalizarAtencion();
+      setWaitingRedirect(true);
+      await delay(50);
       console.log(
         "%c[AtencionPage] finalizarAtencion llamado por error en marcar cita atendida",
         "color: orange;"
       );
-      navigate("/agenda");
+      // NO navigate aquí
     },
   });
 
-  // Cronómetro y avisos
+  // --- Escucha cambio enAtencion y navega solo cuando sea false ---
+  useEffect(() => {
+    console.log(
+      "[useEffect/enAtencion] enAtencion cambió a:",
+      enAtencion,
+      "waitingRedirect?",
+      waitingRedirect
+    );
+    if (waitingRedirect && enAtencion === false) {
+      console.log(
+        "%c[AtencionPage] Redirigiendo a /agenda porque enAtencion=false",
+        "color: green; font-weight:bold;"
+      );
+      setWaitingRedirect(false);
+      navigate("/agenda");
+    }
+  }, [enAtencion, waitingRedirect, navigate]);
+
+  // --- Cronómetro y avisos ---
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -84,18 +105,18 @@ export default function AtencionPage() {
     };
   }, []);
 
-  // Avisos toast en los tiempos críticos (modifica avisos para producción)
   useEffect(() => {
-    const avisos = [15, 10, 5, 2];
+    const avisos = [900, 600, 300];
     if (avisos.includes(secondsLeft)) {
+      const minutos = Math.floor(secondsLeft / 60);
       toast.warning(
-        `¡Te quedan solo ${secondsLeft} segundo${
-          secondsLeft > 1 ? "s" : ""
+        `¡Te quedan solo ${minutos} minuto${
+          minutos > 1 ? "s" : ""
         } para finalizar la atención!`,
         { duration: 3000 }
       );
       console.log(
-        `%c[AtencionPage] Aviso de tiempo restante: ${secondsLeft} segundos`,
+        `%c[AtencionPage] Aviso de tiempo restante: ${minutos} minutos`,
         "color: orange;"
       );
     }
@@ -112,19 +133,10 @@ export default function AtencionPage() {
         notasResultado: "Sin comentarios",
         citaId: Number(citaId),
       });
-      // NOTA: no liberar aquí porque se libera en onSuccess/onError de mutación
     }
   }, [secondsLeft]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // NO liberar finalizarAtencion aquí para que el flag no se reseteé al salir
-  // useEffect(() => {
-  //   return () => {
-  //     finalizarAtencion();
-  //     console.log("%c[AtencionPage] finalizarAtencion llamado al desmontar la página", "color: orange;");
-  //   };
-  // }, []);
-
-  // Hook cita
+  // --- Consulta cita ---
   const {
     data: cita,
     isLoading,
