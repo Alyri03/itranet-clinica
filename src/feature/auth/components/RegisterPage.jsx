@@ -37,6 +37,7 @@ export default function RegisterPage() {
   const verificarDocumento = useVerificarDocumento({
     onSuccess: (data) => {
       if (data.exists) {
+        // YA EXISTE: Registro por recepción
         setInitialData({
           ...data,
           tipoDocumentoNombre: form.documentType,
@@ -82,7 +83,10 @@ export default function RegisterPage() {
           {/* Paso 1: Verificar documento */}
           {step === "verify-document" && (
             <>
-              <Link to="/login" className="text-sm text-gray-500 flex items-center gap-1 pb-5">
+              <Link
+                to="/login"
+                className="text-sm text-gray-500 flex items-center gap-1 pb-5"
+              >
                 <ArrowLeft className="" />
                 <p>Volver al login</p>
               </Link>

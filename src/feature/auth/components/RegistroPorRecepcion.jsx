@@ -1,250 +1,219 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/DatePicker";
 import { toast } from "sonner";
-import { useNavigate, Link } from "react-router-dom";
-import { useRegistroCompleto } from "../hooks/useRegistroCompleto";
-import { format } from "date-fns";
-import { ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { useEnviarCodigo } from "../hooks/useEnviarCodigo";
+import { useVerificarCodigo } from "../hooks/useVerificarCodigo";
+import { useCompletarRegistro } from "../hooks/useCompletarRegistro";
 
-export default function RegistroCompleto({ initialData }) {
+export default function RegistroPorRecepcion({ initialData }) {
   const navigate = useNavigate();
-  const { mutate, isPending } = useRegistroCompleto({
-    onSuccess: () => {
-      toast.success("Registro exitoso. Ya puedes iniciar sesión.");
-      navigate("/login");
-    },
-    onError: (err) => {
-      console.error("Error al registrar:", err);
-      toast.error(
-        err?.response?.data?.message || "Ocurrió un error al registrar"
-      );
-    },
-  });
+  const [step, setStep] = useState("correo"); // correo, otp, password
+  const [email, setEmail] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Guardar correo ya validado, para el paso final
+  const [correoVerificado, setCorreoVerificado] = useState("");
 
   const tipoDocumentoNombre =
     initialData?.tipoDocumentoNombre || initialData?.documentType || "DNI";
   const numeroDocumento =
     initialData?.numeroDocumento || initialData?.documentNumber || "";
 
-  const [fechaNacimiento, setFechaNacimiento] = useState(null);
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    nombres: "",
-    apellidos: "",
-    sexo: "MASCULINO",
-    tipoDocumentoId: initialData?.tipoDocumentoId || 1,
-    numeroDocumento: numeroDocumento,
-    fechaNacimiento: "",
-    telefono: "",
-    direccion: "",
-    modalidadAtencion: "PARTICULAR",
-    contactoEmergenciaNombre: "",
-    contactoEmergenciaTelefono: "",
-    seguroId: null,
-    numeroPoliza: null,
+  // Enviar código
+  const { mutate: enviarCodigo, isPending: enviando } = useEnviarCodigo({
+    onSuccess: () => {
+      toast.success("Código enviado a tu correo");
+      setCorreoVerificado(email);
+      setStep("otp");
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Error al enviar el código");
+    },
   });
 
-  useEffect(() => {
-    if (initialData) {
-      setForm((prev) => ({
-        ...prev,
-        tipoDocumentoId: initialData?.tipoDocumentoId ?? prev.tipoDocumentoId,
-        numeroDocumento: numeroDocumento || prev.numeroDocumento,
-      }));
-    }
-  }, [initialData]);
+  // Verificar código
+  const { mutate: verificarCodigo, isPending: verificando } =
+    useVerificarCodigo({
+      onSuccess: () => {
+        toast.success("Código verificado");
+        setStep("password");
+      },
+      onError: (err) => {
+        toast.error(err?.response?.data?.message || "Código incorrecto");
+      },
+    });
 
-  useEffect(() => {
-    if (fechaNacimiento) {
-      setForm((prev) => ({
-        ...prev,
-        fechaNacimiento: format(fechaNacimiento, "yyyy-MM-dd"),
-      }));
-    }
-  }, [fechaNacimiento]);
+  // Completar registro
+  const { mutate: completarRegistro, isPending: completando } =
+    useCompletarRegistro({
+      onSuccess: () => {
+        toast.success("Registro completado. Ya puedes iniciar sesión.");
+        navigate("/login");
+      },
+      onError: (err) => {
+        toast.error(
+          err?.response?.data?.message || "Error al crear la contraseña"
+        );
+      },
+    });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  // Handlers
+  const handleEnviarCodigo = (e) => {
+    e.preventDefault();
+    enviarCodigo({
+      email,
+      documento: numeroDocumento,
+    });
   };
 
-  const handleSubmit = (e) => {
+  const handleVerificarCodigo = (e) => {
     e.preventDefault();
-    mutate(form);
+    verificarCodigo({
+      email: correoVerificado,
+      code: codigo,
+    });
+  };
+
+  const handleCompletarRegistro = (e) => {
+    e.preventDefault();
+    completarRegistro({
+      password,
+      email: correoVerificado,
+      documento: numeroDocumento,
+    });
   };
 
   return (
     <section className="flex items-center justify-center min-h-screen px-4 bg-white">
-      <div className="w-full max-w-xl space-y-6 mb-5">
-        <Link
-          to="/login"
-          className="text-sm text-gray-500 flex items-center gap-1"
-        >
-          <ArrowLeft className="" />
-          <p>Volver al login</p>
+      <div className="w-full max-w-md space-y-6">
+        <Link to="/login" className="text-sm text-gray-500 underline">
+          Volver al login
         </Link>
-        <h1 className="text-3xl font-bold text-center">Registro completo</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Campos bloqueados */}
-          {(tipoDocumentoNombre || numeroDocumento) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-md font-medium text-gray-700 mb-1">
-                  Tipo de documento
-                </label>
-                <Input
-                  value={tipoDocumentoNombre}
-                  readOnly
-                  className="bg-gray-100 cursor-not-allowed"
-                  tabIndex={-1}
-                />
-              </div>
-              <div>
-                <label className="block text-md font-medium text-gray-700 mb-1">
-                  N° Documento
-                </label>
-                <Input
-                  value={numeroDocumento}
-                  readOnly
-                  className="bg-gray-100 cursor-not-allowed"
-                  tabIndex={-1}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Campos editables */}
-          <div className="grid grid-cols-1 gap-4 ">
-            <div>
-              <label className="block text-md font-medium text-gray-700 mb-1">
-                Cuenta
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  name="email"
-                  placeholder="Correo electrónico"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-                <Input
-                  name="password"
-                  type="password"
-                  placeholder="Contraseña"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  minlength={8}
-                />
-                <Input
-                  name="modalidadAtencion"
-                  placeholder="Modalidad de atención"
-                  value={form.modalidadAtencion}
-                  onChange={handleChange}
-                  required
-                  maxlength={20}
-                  minlength={3}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-md font-medium text-gray-700 mb-1">
-                Datos personales
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  name="nombres"
-                  placeholder="Nombres"
-                  value={form.nombres}
-                  onChange={handleChange}
-                  required
-                />
-                <Input
-                  name="apellidos"
-                  placeholder="Apellidos"
-                  value={form.apellidos}
-                  onChange={handleChange}
-                  required
-                />
-
-                <Input
-                  name="telefono"
-                  placeholder="Teléfono"
-                  value={form.telefono}
-                  onChange={handleChange}
-                  required
-                  maxlength={9}
-                  minlength={9}
-                />
-                <Input
-                  name="direccion"
-                  placeholder="Dirección"
-                  value={form.direccion}
-                  onChange={handleChange}
-                  required
-                  maxlength={100}
-                  minlength={5}
-                />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha de nacimiento
-                  </label>
-                  <DatePicker
-                    value={fechaNacimiento}
-                    onChange={setFechaNacimiento}
-                    placeholder="Selecciona fecha"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Género
-                  </label>
-                  <Input
-                    name="sexo"
-                    placeholder="Sexo"
-                    value={form.sexo}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-md font-medium text-gray-700 mb-1">
-                Contacto de emergencia
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  name="contactoEmergenciaNombre"
-                  placeholder="Nombre contacto de emergencia"
-                  value={form.contactoEmergenciaNombre}
-                  onChange={handleChange}
-                  required
-                  maxlength={50}
-                  minlength={3}
-                />
-                <Input
-                  name="contactoEmergenciaTelefono"
-                  placeholder="Teléfono contacto emergencia"
-                  value={form.contactoEmergenciaTelefono}
-                  onChange={handleChange}
-                  required
-                  maxlength={9}
-                  minlength={9}
-                />
-              </div>
-            </div>
+        <h1 className="text-2xl font-bold text-center">Completa tu registro</h1>
+        {/* Tipo de documento y documento (bloqueados, siempre arriba) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Tipo de documento
+            </label>
+            <Input
+              value={tipoDocumentoNombre}
+              readOnly
+              className="bg-gray-100 cursor-not-allowed"
+            />
           </div>
-          <Button className="w-full" type="submit" disabled={isPending}>
-            {isPending ? "Registrando..." : "Registrarme"}
-          </Button>
-        </form>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              N° Documento
+            </label>
+            <Input
+              value={numeroDocumento}
+              readOnly
+              className="bg-gray-100 cursor-not-allowed"
+            />
+          </div>
+        </div>
+        {/* Paso 1: Correo */}
+        {step === "correo" && (
+          <form className="space-y-3" onSubmit={handleEnviarCodigo}>
+            <label className="block text-sm font-medium mb-1">
+              Correo electrónico
+            </label>
+            <Input
+              type="email"
+              value={email}
+              placeholder="Tu correo"
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Button type="submit" className="w-full" disabled={enviando}>
+              {enviando ? "Enviando código..." : "Enviar código"}
+            </Button>
+          </form>
+        )}
+
+        {/* Paso 2: OTP */}
+        {step === "otp" && (
+          <form className="space-y-3" onSubmit={handleVerificarCodigo}>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Correo electrónico
+              </label>
+              <Input
+                value={correoVerificado}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <label className="block text-sm font-medium mb-1">
+              Código de verificación (6 dígitos)
+            </label>
+            <Input
+              type="text"
+              value={codigo}
+              maxLength={6}
+              minLength={6}
+              pattern="\d{6}"
+              inputMode="numeric"
+              placeholder="Ingresa el código"
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ""))}
+              required
+            />
+            <Button type="submit" className="w-full" disabled={verificando}>
+              {verificando ? "Verificando..." : "Verificar código"}
+            </Button>
+          </form>
+        )}
+
+        {/* Paso 3: Contraseña */}
+        {step === "password" && (
+          <form className="space-y-3" onSubmit={handleCompletarRegistro}>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Correo electrónico
+              </label>
+              <Input
+                value={correoVerificado}
+                readOnly
+                className="bg-gray-100 cursor-not-allowed"
+              />
+            </div>
+            <label className="block text-sm font-medium mb-1">
+              Crea tu contraseña
+            </label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                placeholder="Nueva contraseña"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            <Button className="w-full" type="submit" disabled={completando}>
+              {completando ? "Registrando..." : "Completar registro"}
+            </Button>
+          </form>
+        )}
       </div>
     </section>
   );
