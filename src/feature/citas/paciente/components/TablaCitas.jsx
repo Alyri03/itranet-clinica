@@ -202,9 +202,9 @@ export default function TablaCitas() {
       {/* Dialog para ver detalles */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detalle de la cita</DialogTitle>
-            <DialogClose />
+          <DialogHeader className="fflex flex-col items-center text-center relative">
+            <DialogTitle className="text-lg font-semibold text-gray-900">Detalle de la cita</DialogTitle>
+            <DialogClose className="absolute right-0 top-0" />
           </DialogHeader>
           {citaSeleccionada && (
             <div className="space-y-2 text-sm">

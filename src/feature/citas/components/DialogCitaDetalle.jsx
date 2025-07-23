@@ -16,45 +16,95 @@ export default function DialogCitaDetalle({ open, cita, onOpenChange }) {
         datosCita?.estadoCita
     )}`;
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full max-w-[95vw] sm:max-w-fit px-6 py-4">
+<Dialog open={open} onOpenChange={onOpenChange}>
+  <DialogContent className="w-full max-w-4xl max-h-[90vh] overflow-y-auto px-10 py-8 rounded-2xl shadow-lg">
+    <div className="space-y-10">
 
-                <div className="flex flex-col gap-3">
-                    <section className="flex flex-col items-center gap-2">
-                        <Calendar />
-                        <h2 className="font-bold text-center text-sm sm:text-base">Información general</h2>
-                        <div className="flex flex-wrap justify-center gap-3 text-sm">
-                            <span><strong>Fecha: </strong>{datosCita?.fecha}</span>
-                            <span><strong>Hora: </strong>{datosCita?.hora}</span>
-                            <span><strong>Servicio: </strong>{servicio?.nombre}</span>
-                            <span><strong>Estado: </strong><Badge variant={badgeVariant}>{datosCita?.estadoCita}</Badge></span>
-                        </div>
-                    </section>
-                    <section className="flex flex-col items-center gap-2">
-                        <Hospital />
-                        <h2 className="font-bold text-center text-sm sm:text-base">Médico</h2>
-                        <div className="flex flex-wrap justify-center gap-3 text-sm">
-                            <span><strong>Nombre: </strong>{medico?.nombres}</span>
-                            <span><strong>Tipo: </strong>{medico?.tipoMedico}</span>
-                            <span><strong>Telefono: </strong>{medico?.telefono}</span>
-                        </div>
-                    </section>
+      {/* INFORMACIÓN GENERAL */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-center gap-2">
+          <Calendar className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-gray-800">Información General</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm text-gray-700">
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Fecha:</span>
+            <span>{datosCita?.fecha}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Hora:</span>
+            <span>{datosCita?.hora}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Servicio:</span>
+            <span>{servicio?.nombre}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Estado:</span>
+            <Badge variant={badgeVariant}>{datosCita?.estadoCita}</Badge>
+          </div>
+        </div>
+      </section>
 
-                    <section className="flex flex-col items-center gap-2">
-                        <User />
-                        <h2 className="font-bold text-center text-sm sm:text-base">Paciente</h2>
-                        <div className="flex flex-wrap justify-center gap-3 text-sm">
-                            <span><strong>Nombre: </strong>{paciente?.nombres}</span>
-                            <span><strong>Telefono: </strong>{paciente?.telefono}</span>
-                            <span><strong>Dirección: </strong>{paciente?.direccion}</span>
-                            <span><strong>Sexo: </strong>{paciente?.sexo}</span>
-                            <span><strong>Correo: </strong>{paciente?.email}</span>
-                            <span><strong>Numero de identificación: </strong>{paciente?.numeroIdentificacion}</span>
-                        </div>
-                    </section>
-                </div>
+      {/* MÉDICO */}
+      <section className="space-y-4 border-t pt-6">
+        <div className="flex items-center justify-center gap-2">
+          <Hospital className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-gray-800">Médico:</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm text-gray-700">
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Nombre:</span>
+            <span>{medico?.nombres}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Tipo:</span>
+            <span>{medico?.tipoMedico}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Teléfono:</span>
+            <span>{medico?.telefono}</span>
+          </div>
+        </div>
+      </section>
 
-            </DialogContent>
-        </Dialog>
+      {/* PACIENTE */}
+      <section className="space-y-4 border-t pt-6">
+        <div className="flex items-center justify-center gap-2">
+          <User className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-gray-800">Paciente:</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm text-gray-700 break-words">
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Nombre:</span>
+            <span>{paciente?.nombres}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Teléfono:</span>
+            <span>{paciente?.telefono}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Dirección:</span>
+            <span>{paciente?.direccion}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Sexo:</span>
+            <span>{paciente?.sexo}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">Correo:</span>
+            <span>{paciente?.email}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-700 font-medium">N° de Identificación:</span>
+            <span>{paciente?.numeroIdentificacion}</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </DialogContent>
+</Dialog>
+
     )
 }

@@ -116,11 +116,11 @@ export default function ProximasCitas({ pacienteId }) {
       {/* Dialog para ver detalle */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
+          <DialogHeader className="flex flex-col items-center text-center relative">
             <DialogTitle className="text-lg font-semibold text-gray-900">
               Detalle de la Cita
             </DialogTitle>
-            <DialogClose />
+            <DialogClose className="absolute right-0 top-0" />
           </DialogHeader>
           {citaSeleccionada && (
             <div className="space-y-2 text-sm text-gray-700">
