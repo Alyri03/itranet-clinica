@@ -92,6 +92,7 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
             <Input
               name="telefono"
               value={form.telefono}
+              maxLength={9}
               onChange={handleChange}
               placeholder="Teléfono"
               className={inputClass}
@@ -121,6 +122,7 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
             />
             <Input
               name="contactoDeEmergenciaTelefono"
+              maxLength={9}
               value={form.contactoDeEmergenciaTelefono}
               onChange={handleChange}
               placeholder="Teléfono de Contacto de Emergencia"

@@ -101,6 +101,7 @@ export default function CrearCita({ onSuccess }) {
             <Input
               placeholder="Número de DNI"
               value={dni}
+              maxLength={8}
               onChange={(e) => setDni(e.target.value)}
             />
             <Button onClick={() => buscarPaciente()} disabled={!dni}>

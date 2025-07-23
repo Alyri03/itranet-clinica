@@ -243,6 +243,7 @@ export default function DialogEditarMedico({
               </Label>
               <Input
                 value={form.numeroDocumento}
+                maxLength={8}
                 onChange={(e) =>
                   handleChange("numeroDocumento", e.target.value)
                 }
@@ -255,6 +256,7 @@ export default function DialogEditarMedico({
               </Label>
               <Input
                 value={form.numeroColegiatura}
+                maxLength={11}
                 onChange={(e) =>
                   handleChange("numeroColegiatura", e.target.value)
                 }
@@ -286,6 +288,7 @@ export default function DialogEditarMedico({
                 </Label>
                 <Input
                   value={form.numeroRNE || ""}
+                  maxLength={9}
                   onChange={(e) => handleChange("numeroRNE", e.target.value)}
                 />
               </div>
@@ -363,6 +366,7 @@ export default function DialogEditarMedico({
               <Label className="mb-1 flex items-center gap-1">Teléfono</Label>
               <Input
                 value={form.telefono}
+                maxLength={9}
                 onChange={(e) => handleChange("telefono", e.target.value)}
               />
             </div>
