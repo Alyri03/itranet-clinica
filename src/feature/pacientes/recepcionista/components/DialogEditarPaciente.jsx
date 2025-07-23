@@ -11,8 +11,27 @@ import { Button } from "@/components/ui/button";
 import { useActualizarPaciente } from "../../hooks/useActualizarPaciente";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Phone,
+  MapPin,
+  FileText,
+  User,
+  Contact,
+} from "lucide-react";
 
-const inputClass = "h-[36px] text-sm";
+const inputClass = "h-[38px] text-sm w-full"; // Sin padding izquierdo aquí
+
+// Input con ícono a la izquierda
+function InputWithIcon({ icon: Icon, ...props }) {
+  return (
+    <div className="relative">
+      <div className="absolute left-3 top-2.5 text-gray-500">
+        <Icon size={16} />
+      </div>
+      <Input {...props} className={`${inputClass} pl-9`} />
+    </div>
+  );
+}
 
 export default function DialogEditarPaciente({ open, onClose, paciente }) {
   const [form, setForm] = useState({
@@ -22,13 +41,13 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
     contactoDeEmergenciaNombre: "",
     contactoDeEmergenciaTelefono: "",
   });
-  const queryClient = useQueryClient()
 
+  const queryClient = useQueryClient();
   const [error, setError] = useState("");
 
   const { mutate, isLoading } = useActualizarPaciente({
-    onSuccess: (data) => {
-      queryClient.invalidateQueries(["pacientes"])
+    onSuccess: () => {
+      queryClient.invalidateQueries(["pacientes"]);
       toast.success("Paciente actualizado correctamente");
       onClose();
       setError("");
@@ -83,50 +102,50 @@ export default function DialogEditarPaciente({ open, onClose, paciente }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="min-w-[600px] max-w-3xl px-10 py-8">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-center">
+          <DialogTitle className="text-2xl text-center font-bold text-gray-800">
             Editar Información de Contacto
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputWithIcon
               name="telefono"
               value={form.telefono}
               maxLength={9}
               onChange={handleChange}
               placeholder="Teléfono"
-              className={inputClass}
+              icon={Phone}
             />
-            <Input
+            <InputWithIcon
               name="direccion"
               value={form.direccion}
               onChange={handleChange}
               placeholder="Dirección"
-              className={inputClass}
+              icon={MapPin}
             />
           </div>
-          <Input
+          <InputWithIcon
             name="antecedentes"
             value={form.antecedentes}
             onChange={handleChange}
             placeholder="Antecedentes"
-            className={inputClass}
+            icon={FileText}
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputWithIcon
               name="contactoDeEmergenciaNombre"
               value={form.contactoDeEmergenciaNombre}
               onChange={handleChange}
               placeholder="Nombre de Contacto de Emergencia"
-              className={inputClass}
+              icon={User}
             />
-            <Input
+            <InputWithIcon
               name="contactoDeEmergenciaTelefono"
               maxLength={9}
               value={form.contactoDeEmergenciaTelefono}
               onChange={handleChange}
               placeholder="Teléfono de Contacto de Emergencia"
-              className={inputClass}
+              icon={Contact}
             />
           </div>
           {error && <p className="text-red-600 text-sm text-center">{error}</p>}

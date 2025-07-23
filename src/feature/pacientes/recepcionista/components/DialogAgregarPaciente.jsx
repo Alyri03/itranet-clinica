@@ -18,7 +18,17 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { DatePicker } from "@/components/ui/DatePicker"; // <--- Usa tu componente
+import { DatePicker } from "@/components/ui/DatePicker";
+import {
+  User,
+  Phone,
+  MapPin,
+  Mail,
+  Contact,
+  FileText,
+  ShieldCheck,
+  BadgeCheck,
+} from "lucide-react";
 
 const sexoOptions = [
   { value: "MASCULINO", label: "Masculino" },
@@ -33,7 +43,18 @@ const modalidadOptions = [
 
 const inputClass = "h-[36px] text-sm";
 const selectTriggerClass =
-  "w-full h-[36px] px-3 py-0 text-sm rounded-md border border-input bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors flex items-center";
+  "w-full h-[36px] px-3 py-0 text-sm rounded-md border border-input bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors flex items-center pl-9";
+
+function InputWithIcon({ icon: Icon, ...props }) {
+  return (
+    <div className="relative">
+      <div className="absolute left-3 top-2.5 text-gray-500">
+        <Icon size={16} />
+      </div>
+      <Input {...props} className={`${inputClass} pl-9`} />
+    </div>
+  );
+}
 
 export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -55,8 +76,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: tipoDocumentos = [], isLoading: loadingTiposDocumento } =
-    useTiposDocumento();
+  const { data: tipoDocumentos = [], isLoading: loadingTiposDocumento } = useTiposDocumento();
 
   const mutation = useCrearPaciente({
     onSuccess: () => {
@@ -72,21 +92,15 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
     },
   });
 
-  // Sincroniza el datePicker con el campo string de fechaNacimiento
   useEffect(() => {
     if (fechaNacimiento) {
       setForm((prev) => ({
         ...prev,
-        fechaNacimiento: fechaNacimiento.toISOString().slice(0, 10), // yyyy-MM-dd
+        fechaNacimiento: fechaNacimiento.toISOString().slice(0, 10),
       }));
+    } else {
+      setForm((prev) => ({ ...prev, fechaNacimiento: "" }));
     }
-    if (fechaNacimiento === null) {
-      setForm((prev) => ({
-        ...prev,
-        fechaNacimiento: "",
-      }));
-    }
-    // eslint-disable-next-line
   }, [fechaNacimiento]);
 
   useEffect(() => {
@@ -178,47 +192,48 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
             Complete todos los campos obligatorios
           </p>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-8 px-10 pb-4 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputWithIcon
+              icon={User}
               name="nombres"
               placeholder="Nombres *"
               value={form.nombres}
               onChange={handleChange}
-              className={inputClass}
             />
-            <Input
+            <InputWithIcon
+              icon={User}
               name="apellidos"
               placeholder="Apellidos *"
               value={form.apellidos}
               onChange={handleChange}
-              className={inputClass}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Aquí va el DatePicker en vez del input date */}
-            <div>
 
-              <DatePicker
-                value={fechaNacimiento}
-                onChange={setFechaNacimiento}
-                placeholder="Selecciona fecha"
-                minYear={1900}
-                maxYear={new Date().getFullYear()}
-              />
-            </div>
-            <Input
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <DatePicker
+              value={fechaNacimiento}
+              onChange={setFechaNacimiento}
+              placeholder="Fecha de nacimiento"
+              minYear={1900}
+              maxYear={new Date().getFullYear()}
+            />
+
+            <InputWithIcon
+              icon={ShieldCheck}
               name="nacionalidad"
               placeholder="Nacionalidad"
               value={form.nacionalidad}
               onChange={handleChange}
-              className={inputClass}
             />
+
             <Select
               value={form.sexo}
               onValueChange={(val) => handleSelect("sexo", val)}
             >
               <SelectTrigger className={selectTriggerClass}>
+                <User size={16} className="absolute left-3 top-2.5 text-gray-500" />
                 {form.sexo
                   ? sexoOptions.find((s) => s.value === form.sexo)?.label
                   : "Seleccione el sexo"}
@@ -232,6 +247,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               </SelectContent>
             </Select>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
               value={form.tipoDocumento}
@@ -239,6 +255,7 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               disabled={loadingTiposDocumento}
             >
               <SelectTrigger className={selectTriggerClass}>
+                <FileText size={16} className="absolute left-3 top-2.5 text-gray-500" />
                 {loadingTiposDocumento
                   ? "Cargando..."
                   : tipoDocumentos.find((d) => d.id === +form.tipoDocumento)
@@ -252,63 +269,68 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
                 ))}
               </SelectContent>
             </Select>
-            <Input
+
+            <InputWithIcon
+              icon={FileText}
               name="numeroIdentificacion"
               placeholder="Número de documento"
               value={form.numeroIdentificacion}
               maxLength={8}
               onChange={handleChange}
-              className={inputClass}
             />
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputWithIcon
+              icon={Phone}
               name="telefono"
               placeholder="Teléfono"
               maxLength={9}
               value={form.telefono}
               onChange={handleChange}
-              className={inputClass}
             />
-            <Input
+            <InputWithIcon
+              icon={MapPin}
               name="direccion"
               placeholder="Dirección"
               value={form.direccion}
               onChange={handleChange}
-              className={inputClass}
             />
           </div>
-          <Input
+
+          <InputWithIcon
+            icon={Mail}
             name="email"
             placeholder="Correo electrónico"
             value={form.email}
             type="email"
             onChange={handleChange}
-            className={inputClass}
           />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <InputWithIcon
+              icon={Contact}
               name="contactoDeEmergenciaNombre"
               placeholder="Nombre de contacto de emergencia"
               value={form.contactoDeEmergenciaNombre}
-              maxLength={9}
               onChange={handleChange}
-              className={inputClass}
             />
-            <Input
+            <InputWithIcon
+              icon={Phone}
               name="contactoDeEmergenciaTelefono"
               placeholder="Teléfono de emergencia"
               value={form.contactoDeEmergenciaTelefono}
               maxLength={9}
               onChange={handleChange}
-              className={inputClass}
             />
           </div>
+
           <Select
             value={form.modalidadDeAtencion}
             onValueChange={(val) => handleSelect("modalidadDeAtencion", val)}
           >
             <SelectTrigger className={selectTriggerClass}>
+              <BadgeCheck size={16} className="absolute left-3 top-2.5 text-gray-500" />
               {
                 modalidadOptions.find(
                   (m) => m.value === form.modalidadDeAtencion
@@ -323,9 +345,11 @@ export default function DialogAgregarPaciente({ open, onClose, onSuccess }) {
               ))}
             </SelectContent>
           </Select>
+
           {error && (
             <div className="text-red-600 text-sm mt-2 text-center">{error}</div>
           )}
+
           <DialogFooter className="flex justify-end gap-2 pt-6 pb-2">
             <Button variant="outline" type="button" onClick={onClose}>
               Cancelar
