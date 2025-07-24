@@ -10,16 +10,28 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Phone, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"
+
 
 export default function CardPacientes() {
   const medicoId = useAuthStore((s) => s.medicoId);
   const { data: pacientes = [], isLoading, isError } = usePacientesDeUnMedico(medicoId);
 
+  const [sorting, setSorting] = useState("")
+
+  const filtrarPacientes = pacientes.filter((paciente) => {
+    const nombreCompleto = paciente.nombres + " " + paciente.apellidos
+    return (
+      nombreCompleto.toLowerCase().includes(sorting.toLowerCase()) ||
+      paciente.numeroIdentificacion.toLowerCase().includes(sorting.toLowerCase())
+    )
+  })
+
   // Paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const pacientesPorPagina = 6;
-  const totalPaginas = Math.ceil(pacientes.length / pacientesPorPagina);
-  const pacientesPaginados = pacientes.slice(
+  const totalPaginas = Math.ceil(filtrarPacientes.length / pacientesPorPagina);
+  const pacientesPaginados = filtrarPacientes.slice(
     (paginaActual - 1) * pacientesPorPagina,
     paginaActual * pacientesPorPagina
   );
@@ -30,6 +42,13 @@ export default function CardPacientes() {
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Tarjetas de Pacientes</h2>
+      <Input
+          placeholder="Buscar paciente..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full mb-2"
+        />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {pacientesPaginados.map((p, i) => (
           <Card key={p.numeroIdentificacion || i} className="w-full">

@@ -25,14 +25,27 @@ import DialogEliminarPaciente from "../components/DialogEliminarPaciente";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Spinner from "../../../../components/Spinner.jsx";
 import { getInitials } from "../../../../utils/Avatar.js";
+import { Input } from "@/components/ui/input"
+
 export default function TablaGestionPaciente() {
   const { data: pacientes = [], isLoading } = usePacientes();
+
+  const [sorting, setSorting] = useState("")
+
+  const filtrarPacientes = pacientes.filter((paciente) => {
+    const nombreCompleto = paciente.nombres + " " + paciente.apellidos
+    console.log(paciente)
+    return (
+      nombreCompleto.toLowerCase().includes(sorting.toLowerCase()) ||
+      paciente.numeroIdentificacion.toLowerCase().includes(sorting.toLowerCase())
+    )
+  })
 
   const [paginaActual, setPaginaActual] = useState(1);
   const pacientesPorPagina = 8;
 
-  const totalPaginas = Math.ceil(pacientes.length / pacientesPorPagina);
-  const pacientesPaginados = pacientes.slice(
+  const totalPaginas = Math.ceil(filtrarPacientes.length / pacientesPorPagina);
+  const pacientesPaginados = filtrarPacientes.slice(
     (paginaActual - 1) * pacientesPorPagina,
     paginaActual * pacientesPorPagina
   );
@@ -58,7 +71,14 @@ export default function TablaGestionPaciente() {
 
   return (
     <div className="">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Input
+          placeholder="Buscar paciente..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full"
+        />
         <Button
           onClick={() => setModalOpen(true)}
           className="mb-2 bg-primary text-white"

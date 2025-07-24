@@ -14,16 +14,27 @@ import { getSexoBadge } from "../../recepcionista/util/patientUtils.jsx";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Spinner from "../../../../components/Spinner.jsx";
 import { getInitials } from "../../../../utils/Avatar.js";
+import { Input } from "@/components/ui/input"
 
 export default function TablaPacientesDeMedico() {
   const medicoId = useAuthStore((s) => s.medicoId);
   const { data: pacientes = [], isLoading } = usePacientesDeUnMedico(medicoId);
 
+  const [sorting, setSorting] = useState("")
+
+  const filtrarPacientes = pacientes.filter((paciente) => {
+    const nombreCompleto = paciente.nombres + " " + paciente.apellidos
+    return (
+      nombreCompleto.toLowerCase().includes(sorting.toLowerCase()) ||
+      paciente.numeroIdentificacion.toLowerCase().includes(sorting.toLowerCase())
+    )
+  })
+
   // PAGINACIÓN
   const [paginaActual, setPaginaActual] = useState(1);
   const pacientesPorPagina = 8;
-  const totalPaginas = Math.ceil(pacientes.length / pacientesPorPagina);
-  const pacientesPaginados = pacientes.slice(
+  const totalPaginas = Math.ceil(filtrarPacientes.length / pacientesPorPagina);
+  const pacientesPaginados = filtrarPacientes.slice(
     (paginaActual - 1) * pacientesPorPagina,
     paginaActual * pacientesPorPagina
   );
@@ -31,6 +42,13 @@ export default function TablaPacientesDeMedico() {
   return (
     <div>
       <div className="border rounded-md p-4 space-y-4 bg-white shadow-sm">
+        <Input
+          placeholder="Buscar paciente..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full"
+        />
         <Table className="min-w-[900px]">
           <TableHeader>
             <TableRow>
