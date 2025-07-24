@@ -15,7 +15,7 @@ import { useEnviarResultado } from "../hooks/useEnviarResultado";
 import { useAtenderCita } from "../../citas/hooks/useAtenderCita";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtencionStore } from "@/store/atencionStore"; // <-- Importa el store
+import { useAtencionStore } from "@/store/atencionStore";
 
 export default function RegistroAtencion({ cita }) {
   const { citaId } = useParams();
@@ -23,7 +23,7 @@ export default function RegistroAtencion({ cita }) {
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
-  const finalizarAtencion = useAtencionStore((s) => s.finalizarAtencion); // <-- Usa el hook del store
+  const finalizarAtencion = useAtencionStore((s) => s.finalizarAtencion); 
 
   // Útil para asegurar persistencia del cambio en el store antes de navegar
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -35,12 +35,12 @@ export default function RegistroAtencion({ cita }) {
       toast.success("Atención finalizada correctamente");
       setOpen(false);
       finalizarAtencion(); // <-- Cambia el estado del store
-      await delay(60); // Espera para persistencia localStorage
+      await delay(60); 
       navigate("/agenda");
     },
     onError: async (err) => {
       toast.error("Error al marcar como atendida");
-      console.error("❌ Error al marcar como atendida", err);
+      console.error("Error al marcar como atendida", err);
       finalizarAtencion();
       await delay(60);
       navigate("/agenda");
@@ -54,8 +54,8 @@ export default function RegistroAtencion({ cita }) {
     },
     onError: async (err) => {
       toast.error("Error al enviar resultado");
-      console.error("❌ Error al enviar resultado", err);
-      finalizarAtencion(); // Asegura liberar el flag también aquí
+      console.error("Error al enviar resultado", err);
+      finalizarAtencion(); 
       await delay(60);
       navigate("/agenda");
     },

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
-import loginImg from "@/assets/login.png"; // tu imagen importada
+import loginImg from "@/assets/login.png"; 
 
 export function LoginForm({ onSubmit, loading }) {
   const [email, setEmail] = useState("");

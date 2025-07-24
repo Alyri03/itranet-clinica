@@ -4,7 +4,7 @@ export async function enviarResultado(data) {
     const response = await axiosInstance.post("/resultados", data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error al enviar resultado:", error.response?.data || error);
+    console.error("Error al enviar resultado:", error.response?.data || error);
     throw error;
   }
 }

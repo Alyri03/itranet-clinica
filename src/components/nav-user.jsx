@@ -70,8 +70,7 @@ export function NavUser() {
     return <div className="px-4 py-3 text-sm">Cargando usuario...</div>;
   if (isError || !profile) return null;
 
-  // Según cómo guardes el rol, usa uno de estos:
-  const rol = profile.perfilTipo || profile.rol || ""; // Usa el campo real de tu objeto perfil
+  const rol = profile.perfilTipo || profile.rol || "";
   const fullName = `${profile.nombres ?? ""} ${profile.apellidos ?? ""}`.trim();
   const initials =
     (profile.nombres?.[0] ?? "").toUpperCase() +

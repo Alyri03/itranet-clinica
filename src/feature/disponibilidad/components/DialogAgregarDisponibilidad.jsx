@@ -75,7 +75,7 @@ export default function DialogAgregarDisponibilidad({ open, onClose, medico }) {
     return disponibilidades.map((d) => d.diaSemana);
   }, [disponibilidades]);
 
-  // Calcula fechas ocupadas exactas (por si acaso tu lógica quiere ambos)
+  // Calcula fechas ocupadas exactas 
   const fechasOcupadas = useMemo(() => {
     const fechasSet = new Set();
     bloques.forEach((b) => {
@@ -97,7 +97,7 @@ export default function DialogAgregarDisponibilidad({ open, onClose, medico }) {
       setError("Ya existe una disponibilidad para ese día de la semana.");
       return;
     }
-    // Si además quieres bloquear por fecha exacta (doble control)
+    
     const fechaStr = format(date, "yyyy-MM-dd");
     if (fechasOcupadas.includes(fechaStr)) {
       setError("Ya existe una disponibilidad para esa fecha.");
@@ -147,7 +147,6 @@ export default function DialogAgregarDisponibilidad({ open, onClose, medico }) {
       setError("Ya existe una disponibilidad para ese día de la semana.");
       return;
     }
-    // Si además quieres bloquear por fecha exacta (opcional)
     const fechaStr = form.fecha ? format(form.fecha, "yyyy-MM-dd") : "";
     if (fechasOcupadas.includes(fechaStr)) {
       setError("Ya existe una disponibilidad para esa fecha.");
@@ -182,7 +181,6 @@ export default function DialogAgregarDisponibilidad({ open, onClose, medico }) {
               value={form.fecha}
               onChange={handleFechaChange}
               disabled={isPending}
-              // Puedes usar disabledDays para bloquear por fechas exactas, pero el control principal es por día de semana
               disabledDays={fechasOcupadas.map((f) => new Date(f))}
             />
           </div>

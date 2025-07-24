@@ -56,7 +56,6 @@ function ConfirmDialog({
   );
 }
 
-// Mostrar día y la fecha (buscando en los bloques)
 function mostrarDiaYFecha(disponibilidad, bloques) {
   const dia = disponibilidad.diaSemana ?? "";
   // Busca el primer bloque que corresponda a la disponibilidad

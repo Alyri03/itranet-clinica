@@ -22,10 +22,9 @@ export default function AtencionPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // --- Utilidad para delay
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-  // --- Mutaciones para enviar resultado y finalizar cita ---
+  // Mutaciones para enviar resultado y finalizar cita
   const enviarResultado = useEnviarResultado({
     onSuccess: async () => {
       console.log(
@@ -44,7 +43,6 @@ export default function AtencionPage() {
         "%c[AtencionPage] finalizarAtencion llamado por error en enviar resultado",
         "color: orange;"
       );
-      // NO navigate aquí
     },
   });
 
@@ -59,7 +57,6 @@ export default function AtencionPage() {
         "%c[AtencionPage] finalizarAtencion llamado por éxito en marcar cita atendida",
         "color: orange;"
       );
-      // NO navigate aquí
     },
     onError: async (err) => {
       toast.error("Error al marcar cita como atendida");
@@ -71,11 +68,10 @@ export default function AtencionPage() {
         "%c[AtencionPage] finalizarAtencion llamado por error en marcar cita atendida",
         "color: orange;"
       );
-      // NO navigate aquí
     },
   });
 
-  // --- Escucha cambio enAtencion y navega solo cuando sea false ---
+  // Escucha cambio enAtencion y navega solo cuando sea false 
   useEffect(() => {
     console.log(
       "[useEffect/enAtencion] enAtencion cambió a:",
@@ -143,7 +139,7 @@ export default function AtencionPage() {
     isError,
   } = useCitaByID(citaId, {
     onError: (err) => {
-      console.error("❌ Error al obtener la cita:", err);
+      console.error("Error al obtener la cita:", err);
     },
   });
 

@@ -16,7 +16,6 @@ export default function InicioMedico() {
   const { data: citas, isLoading: isCitasLoading } =
     useCitasConfirmadasPorMedico(medicoId, { enabled: !!medicoId });
 
-  // Mostrar spinner si cualquiera está cargando
   if (isPerfilLoading || isPacientesLoading || isCitasLoading)
     return (
       <div className="flex justify-center items-center h-64">
