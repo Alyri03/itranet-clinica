@@ -19,6 +19,7 @@ import { useState } from "react";
 import { getInitials } from "../../../utils/Avatar";
 import { useTiposDocumento } from "../../pacientes/hooks/useTiposDocumento";
 import Spinner from "../../../components/Spinner";
+import { Input } from "@/components/ui/input"
 
 // Subcomponente para especialidad
 function CeldaEspecialidad({ medico }) {
@@ -61,10 +62,21 @@ export default function TablaGestionMedicos() {
   const { data: medicos = [], isLoading, refetch } = useMedico();
   const { data: tiposDocumento = [] } = useTiposDocumento();
 
+  const [sorting, setSorting] = useState("")
+
+  const filtrarMedicos = medicos.filter((medico) => {
+    const nombreCompleto = medico.nombres + " " + medico.apellidos
+    console.log(medico)
+    return (
+      nombreCompleto.toLowerCase().includes(sorting.toLowerCase()) ||
+      medico.numeroDocumento.toLowerCase().includes(sorting.toLowerCase())
+    )
+  })
+
   const [paginaActual, setPaginaActual] = useState(1);
   const medicosPorPagina = 8;
-  const totalPaginas = Math.ceil(medicos.length / medicosPorPagina);
-  const medicosPaginados = medicos.slice(
+  const totalPaginas = Math.ceil(filtrarMedicos.length / medicosPorPagina);
+  const medicosPaginados = filtrarMedicos.slice(
     (paginaActual - 1) * medicosPorPagina,
     paginaActual * medicosPorPagina
   );
@@ -83,7 +95,14 @@ export default function TablaGestionMedicos() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 gap-2">
+        <Input
+          placeholder="Buscar Medico..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full"
+        />
         <Button onClick={() => setOpenCrear(true)}>
           <UserPlus size={18} className="mr-2" />
           Nuevo Médico
@@ -174,7 +193,7 @@ export default function TablaGestionMedicos() {
                   {/* RNE */}
                   <TableCell className="text-xs">
                     {medico.tipoMedico === "ESPECIALISTA" &&
-                    medico.numeroRNE ? (
+                      medico.numeroRNE ? (
                       medico.numeroRNE
                     ) : (
                       <span className="text-gray-400 italic">No aplica</span>

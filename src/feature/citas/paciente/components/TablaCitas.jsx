@@ -20,8 +20,15 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Eye } from "lucide-react";
+import { Eye, ChevronDown } from "lucide-react";
 import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem
+} from "@/components/ui/dropdown-menu"
 
 // Badge visual con tus variantes
 function EstadoBadge({ estado }) {
@@ -74,6 +81,7 @@ export default function TablaCitas() {
     error,
   } = useTodasCitasPorPaciente(pacienteId);
 
+
   // Carga todos los servicios y médicos
   const { data: servicios = [] } = useServicios();
   const { data: medicos = [] } = useMedico();
@@ -109,11 +117,52 @@ export default function TablaCitas() {
     });
   }, [citas]);
 
+  const [filterOptions, setFilterOptions] = useState([{
+    estado: 'TODOS',
+    visible: true
+  },
+  {
+    estado: 'PENDIENTE',
+    visible: false
+  },
+  {
+    estado: 'CONFIRMADA',
+    visible: false
+  },
+  {
+    estado: 'CANCELADA',
+    visible: false
+  },
+  {
+    estado: 'ATENDIDA',
+    visible: false
+  },
+  {
+    estado: 'NO_PRESENTADO',
+    visible: false
+  }
+  ])
+
+  const [sorting, setSorting] = useState("")
+
+  const filtrarMedicos = citasOrdenadas.filter((cita) => {
+    const nombre = getMedicoNombre(cita?.medicoId)
+    const servicio = servicios.find((m) => m?.id === cita?.servicioId)
+    const nombreServicio = servicio?.nombre
+    return (
+      (nombre?.toLowerCase().includes(sorting.toLowerCase()) ||
+        nombreServicio?.toLowerCase().includes(sorting.toLowerCase())) &&
+      cita?.estadoCita.includes(filterOptions.find(opcion => opcion?.visible === true).estado === "TODOS" ? '' :
+        filterOptions.find(opcion => opcion?.visible === true)?.estado)
+    )
+  })
+
+
   // Paginación
   const citasPorPagina = 7; // puedes ajustar el número aquí
   const [pagina, setPagina] = useState(1);
-  const totalPaginas = Math.ceil(citasOrdenadas.length / citasPorPagina);
-  const citasPagina = citasOrdenadas.slice(
+  const totalPaginas = Math.ceil(filtrarMedicos.length / citasPorPagina);
+  const citasPagina = filtrarMedicos.slice(
     (pagina - 1) * citasPorPagina,
     pagina * citasPorPagina
   );
@@ -123,6 +172,45 @@ export default function TablaCitas() {
 
   return (
     <div className="bg-white shadow rounded-xl p-4 overflow-x-auto">
+      <div className="flex flex-row gap-2 w-full">
+        <Input
+          placeholder="Buscar medico, paciente o servicio..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full mb-3"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Todos <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end">
+            {filterOptions.map((opt, index) => (
+              <DropdownMenuCheckboxItem
+                key={index}
+                className={"capitalize"}
+                checked={opt.visible}
+                onCheckedChange={() => {
+                  const updated = filterOptions.map((item, i) => ({
+                    ...item,
+                    visible: i === index
+                  }))
+
+                  setFilterOptions(updated)
+                }
+                }
+              >
+                {opt.estado}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+
       <h2 className="text-lg font-semibold mb-4">Todas tus Citas</h2>
       {citas.length === 0 ? (
         <p className="text-muted-foreground">No tienes citas registradas.</p>

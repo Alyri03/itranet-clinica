@@ -14,7 +14,7 @@ import { useMedico } from "../../../medicos/hooks/useMedico";
 import { usePacientes } from "../../../pacientes/hooks/usePacientes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Eye, ChevronDown } from "lucide-react";
 import DialogConfirmar from "../../components/DialogConfirmar";
 import DialogCancelar from "../../components/DialogCancelar";
 import { useConfirmarCita } from "../../hooks/useConfirmarCita";
@@ -24,6 +24,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "../../../../utils/Avatar";
 import { normalizarEstadoBadge } from "../../../../utils/badgeEstadoNormalizer";
 import DialogCitaDetalle from "../../components/DialogCitaDetalle";
+import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem
+} from "@/components/ui/dropdown-menu"
+
 
 export default function TablaGestionCitas() {
   const { data: citasRaw = [], isLoading } = useGetCitas();
@@ -43,10 +51,58 @@ export default function TablaGestionCitas() {
     [citasRaw]
   );
 
+
+  const [filterOptions, setFilterOptions] = useState([{
+    estado: 'TODOS',
+    visible: true
+  },
+  {
+    estado: 'PENDIENTE',
+    visible: false
+  },
+  {
+    estado: 'CONFIRMADA',
+    visible: false
+  },
+  {
+    estado: 'CANCELADA',
+    visible: false
+  },
+  {
+    estado: 'ATENDIDA',
+    visible: false
+  },
+  {
+    estado: 'NO_PRESENTADO',
+    visible: false
+  }
+  ])
+
+
+  const [sorting, setSorting] = useState("")
+
+  const filtrarMedicos = citas.filter((cita) => {
+    const paciente = pacientes.find((p) => p?.id === cita?.pacienteId);
+    const medico = medicos.find((m) => m?.id === cita?.medicoId);
+    const servicio = servicios.find((m) => m?.id === cita?.servicioId)
+
+
+    const nombrePaciente = paciente?.nombres + " " + paciente?.apellidos;
+    const nombreMedico = medico?.nombres + " " + medico?.apellidos
+    const nombreServicio = servicio?.nombre
+    return (
+      (nombrePaciente?.toLowerCase().includes(sorting.toLowerCase()) ||
+        nombreMedico?.toLowerCase().includes(sorting.toLowerCase()) ||
+        nombreServicio?.toLowerCase().includes(sorting.toLowerCase())) &&
+      cita?.estadoCita.includes(filterOptions.find(opcion => opcion?.visible === true).estado === "TODOS" ? '' :
+        filterOptions.find(opcion => opcion?.visible === true)?.estado)
+    )
+  })
+
   const [paginaActual, setPaginaActual] = useState(1);
   const citasPorPagina = 6;
-  const totalPaginas = Math.ceil(citas.length / citasPorPagina);
-  const citasPaginadas = citas.slice(
+  const totalPaginas = Math.ceil(filtrarMedicos.length / citasPorPagina);
+  const citasPaginadas = filtrarMedicos.slice(
     (paginaActual - 1) * citasPorPagina,
     paginaActual * citasPorPagina
   );
@@ -71,7 +127,7 @@ export default function TablaGestionCitas() {
   }
 
   const handleAbrirConfirmar = (cita) => setCitaAConfirmar(cita);
-  const handleAbrirDetalle = (cita, medico, paciente, servicio ) => setCitaDetalle({ cita, medico, paciente, servicio })
+  const handleAbrirDetalle = (cita, medico, paciente, servicio) => setCitaDetalle({ cita, medico, paciente, servicio })
   const handleCerrarConfirmar = () => setCitaAConfirmar(null);
 
   const handleConfirmar = (citaId) => {
@@ -97,6 +153,47 @@ export default function TablaGestionCitas() {
   return (
     <div className="border rounded-md p-4 space-y-4">
       <h2 className="text-lg font-semibold mb-4">Gestión de Citas</h2>
+      <div className="flex flex-row gap-2 w-full">
+        <Input
+          placeholder="Buscar medico, paciente o servicio..."
+          onChange={(event) =>
+            setSorting(event.target.value)
+          }
+          className="w-full"
+        />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Todos <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end">
+            {filterOptions.map((opt, index) => (
+              <DropdownMenuCheckboxItem
+                key={index}
+                className={"capitalize"}
+                checked={opt.visible}
+                onCheckedChange={() => {
+                  const updated = filterOptions.map((item, i) => ({
+                    ...item,
+                    visible: i === index
+                  }))
+
+                  setFilterOptions(updated)
+                }
+                }
+              >
+                {opt.estado}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+
+
+
+        </DropdownMenu>
+      </div>
 
       <Table>
         <TableHeader>
@@ -194,7 +291,7 @@ export default function TablaGestionCitas() {
                       <Button
                         size="icon"
                         title="Ver detalle"
-                        onClick={() => handleAbrirDetalle( cita, medico, paciente, servicio )}
+                        onClick={() => handleAbrirDetalle(cita, medico, paciente, servicio)}
                       >
                         <Eye />
                       </Button>
