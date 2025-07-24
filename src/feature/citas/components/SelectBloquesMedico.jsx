@@ -8,6 +8,21 @@ import {
 } from "@/components/ui/select";
 import Spinner from "../../../components/Spinner";
 
+const ESTADOS_BLOQUE_NO_SELECCIONABLES = ["OCUPADO", "TERMINADO", "EXPIRADO"];
+
+function getEstadoLabel(estado) {
+  switch (estado) {
+    case "OCUPADO":
+      return "Ocupado";
+    case "TERMINADO":
+      return "Terminado";
+    case "EXPIRADO":
+      return "Expirado";
+    default:
+      return estado;
+  }
+}
+
 export default function SelectBloquesMedico({ medicoId, value, onChange }) {
   const {
     data: bloques = [],
@@ -21,16 +36,21 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
   );
   const [diaSeleccionado, setDiaSeleccionado] = useState("");
 
+  // Solo bloques del día seleccionado
   const bloquesDeEseDia = useMemo(
     () => (bloques || []).filter((b) => b.fecha === diaSeleccionado),
     [bloques, diaSeleccionado]
+  );
+
+  // Solo los disponibles para elegir
+  const bloquesDisponibles = bloquesDeEseDia.filter(
+    (b) => b.estadoBloque === "DISPONIBLE"
   );
 
   const bloqueSeleccionado = bloquesDeEseDia.find(
     (b) => String(b.id) === String(value)
   );
 
-  // 👉 Muestra el Spinner mientras carga
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-40">
@@ -90,9 +110,9 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
             >
               {!diaSeleccionado ? (
                 <span className="text-gray-400">Selecciona un día primero</span>
-              ) : bloquesDeEseDia.length === 0 ? (
-                <span className="text-gray-400">No hay horarios</span>
-              ) : bloqueSeleccionado ? (
+              ) : bloquesDisponibles.length === 0 ? (
+                <span className="text-gray-400">No hay horarios disponibles</span>
+              ) : bloqueSeleccionado && bloqueSeleccionado.estadoBloque === "DISPONIBLE" ? (
                 <span className="font-semibold text-blue-700">
                   {bloqueSeleccionado.horaInicio.slice(0, 5)} -{" "}
                   {bloqueSeleccionado.horaFin.slice(0, 5)}
@@ -106,16 +126,18 @@ export default function SelectBloquesMedico({ medicoId, value, onChange }) {
                 <SelectItem
                   key={bloque.id}
                   value={String(bloque.id)}
-                  disabled={bloque.estadoBloque === "OCUPADO"}
+                  disabled={ESTADOS_BLOQUE_NO_SELECCIONABLES.includes(bloque.estadoBloque)}
                   className={`flex justify-between ${
-                    bloque.estadoBloque === "OCUPADO"
+                    ESTADOS_BLOQUE_NO_SELECCIONABLES.includes(bloque.estadoBloque)
                       ? "bg-red-50 text-red-700 line-through"
                       : "hover:bg-blue-50"
                   }`}
                 >
                   {bloque.horaInicio.slice(0, 5)} - {bloque.horaFin.slice(0, 5)}
-                  {bloque.estadoBloque === "OCUPADO" && (
-                    <span className="ml-2 text-xs font-semibold">Ocupado</span>
+                  {ESTADOS_BLOQUE_NO_SELECCIONABLES.includes(bloque.estadoBloque) && (
+                    <span className="ml-2 text-xs font-semibold">
+                      {getEstadoLabel(bloque.estadoBloque)}
+                    </span>
                   )}
                 </SelectItem>
               ))}
