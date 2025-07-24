@@ -20,6 +20,7 @@ export default function Layout() {
     "/recepcionistas": "Recepcionistas",
     "/agenda": "Agenda",
     "/atencion": "Atención",
+    "/disponibilidad": "Disponibilidad",
   };
   const currentPath = location.pathname;
   const basePath = "/" + currentPath.split("/")[1]; 

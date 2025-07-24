@@ -23,6 +23,7 @@ const ALL_PROJECTS = [
   { key: "citas", name: "Citas", url: "/citas", icon: CalendarIcon },
   { key: "pacientes", name: "Pacientes", url: "/pacientes", icon: UsersIcon },
   { key: "medicos", name: "Médicos", url: "/medicos", icon: StethoscopeIcon },
+  { key: "disponibilidad", name: "Disponibilidad", url: "/disponibilidad", icon: CalendarIcon }, 
   {
     key: "recepcionistas",
     name: "Recepcionistas",
@@ -31,13 +32,9 @@ const ALL_PROJECTS = [
   },
   { key: "perfil", name: "Perfil", url: "/perfil", icon: UserCircle },
   { key: "agenda", name: "Agenda", url: "/agenda", icon: CalendarIcon },
-  {
-    key: "atencion",
-    name: "Atención",
-    url: "/atencion",
-    icon: StethoscopeIcon,
-  },
+  { key: "atencion", name: "Atención", url: "/atencion", icon: StethoscopeIcon },
 ];
+
 
 export function NavProjects() {
   const location = useLocation();
