@@ -13,7 +13,7 @@ import AgendaPage from "./feature/agenda/AgendaPage";
 import AtencionPage from "./feature/atencion/AtencionPage";
 import ProtectedRoute from "./router/ProtectedRoute";
 import RegisterPage from "./feature/auth/components/RegisterPage";
-// No importes RegistroPorRecepcion ni RegistroCompleto aquí
+import DisponibilidadPage from "./feature/disponibilidad/DisponibilidadPage";
 
 export default function AppRouter() {
   const user = useAuthStore((s) => s.user);
@@ -43,6 +43,7 @@ export default function AppRouter() {
                 path="atencion/:pacienteId/:citaId"
                 element={<AtencionPage />}
               />
+              <Route path="disponibilidad" element={<DisponibilidadPage />} /> {/* <-- AQUI */}
               <Route path="*" element={<Navigate to="/main" />} />
             </Route>
           </Route>
