@@ -39,7 +39,7 @@ export default function DashboardPage() {
       key: "citasHoy",
       title: "Citas Hoy",
       description:
-        "Consulta las citas programadas para hoy y agenda nuevas atenciones rápidamente.",
+        "Consulta las citas programadas el día hoy y agenda nuevas atenciones rápidamente.",
       icon: Calendar,
       colors: "from-indigo-500 to-indigo-600",
       count: citasHoy,

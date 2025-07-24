@@ -8,7 +8,7 @@ export function useCancelarCita(onSuccess) {
   return useMutation({
     mutationFn: cancelarCita,
     onSuccess: (data, variables) => {
-      toast.success("Cita cancelada correctamente ✅");
+      toast.success("Cita cancelada correctamente");
       queryClient.invalidateQueries({ queryKey: ["citas"] });
       if (data?.pacienteId) {
         queryClient.invalidateQueries({
@@ -18,7 +18,7 @@ export function useCancelarCita(onSuccess) {
       if (onSuccess) onSuccess(data, variables);
     },
     onError: (err) => {
-      toast.error("No se pudo cancelar la cita ❌");
+      toast.error("No se pudo cancelar la cita");
       console.error("❌ Error global useCancelarCita →", err);
     },
   });
